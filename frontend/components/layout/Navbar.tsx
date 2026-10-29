@@ -4,35 +4,26 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Bell, Shield, ChevronDown, CheckCircle2, User, Building2, LogOut } from 'lucide-react';
+import { useAuth } from '@/lib/auth/AuthContext';
 import { FDRService } from '@/lib/supabase/service';
-import { Profile, NotificationItem, SystemRole } from '@/lib/types/database';
+import { NotificationItem, SystemRole } from '@/lib/types/database';
 
 export function Navbar() {
   const router = useRouter();
-  const [currentUser, setCurrentUser] = useState<Profile | null>(null);
+  const { user: currentUser, switchRole, signOut } = useAuth();
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [showRoleMenu, setShowRoleMenu] = useState(false);
   const [showNotifMenu, setShowNotifMenu] = useState(false);
 
   useEffect(() => {
-    loadUser();
-  }, []);
-
-  async function loadUser() {
-    const user = await FDRService.getCurrentUser();
-    setCurrentUser(user);
-    const notifs = await FDRService.getNotifications(user.id);
-    setNotifications(notifs);
-  }
+    if (currentUser) {
+      FDRService.getNotifications(currentUser.id).then(setNotifications);
+    }
+  }, [currentUser]);
 
   async function handleRoleChange(newRole: SystemRole) {
-    const updated = await FDRService.switchActiveUserRole(newRole);
-    setCurrentUser(updated);
+    await switchRole(newRole);
     setShowRoleMenu(false);
-    const notifs = await FDRService.getNotifications(updated.id);
-    setNotifications(notifs);
-    // Refresh current route to trigger role-based access updates
-    router.refresh();
   }
 
   const unreadCount = notifications.filter(n => !n.read_status).length;
@@ -189,10 +180,18 @@ export function Navbar() {
                 </div>
               </div>
             </div>
+
+            {/* Explicit Sign Out Button */}
+            <button
+              onClick={() => signOut()}
+              className="p-2 rounded-lg bg-white/10 hover:bg-rose-500/20 hover:text-rose-300 border border-white/20 transition cursor-pointer text-slate-200"
+              title="Sign Out"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
           </div>
         </div>
       </div>
     </header>
   );
 }
-
