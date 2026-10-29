@@ -175,3 +175,4 @@ The portal includes an interactive **Role Switcher** on the top navigation bar a
 - **FastAPI / Pytest**: 6 passed in 0.84s (Health check, internal API token auth, field extraction, discrepancy severity scoring).
 - **Next.js Production Build**: 19/19 routes compiled and statically optimized with Turbopack and React 19 in under 1 second.
 - **Row Level Security**: Full SQL migration policies implemented for PostgreSQL tables and private storage buckets.
+

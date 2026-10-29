@@ -140,3 +140,4 @@ class DiscrepancyDetector:
         if not val:
             return ""
         return "".join(c for c in val.upper() if c.isalnum())
+

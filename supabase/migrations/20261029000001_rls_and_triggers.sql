@@ -288,3 +288,4 @@ CREATE POLICY "Allow authenticated upload to institution folder"
             public.is_officer_or_admin()
         )
     );
+

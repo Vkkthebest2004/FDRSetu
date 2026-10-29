@@ -62,3 +62,4 @@ The Python microservice acts as an intelligent extraction copilot:
    - Match (Confidence 1.0)
    - Tolerable Formatting Difference (e.g., date formatted `DD/MM/YYYY` vs `YYYY-MM-DD`)
    - Material Discrepancy (e.g., amount entered is 15,00,000 but receipt shows 10,00,000) -> Flags severity `HIGH`.
+

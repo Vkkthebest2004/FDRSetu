@@ -46,3 +46,4 @@ export function StatusBadge({ status, type = 'review' }: StatusBadgeProps) {
     </span>
   );
 }
+

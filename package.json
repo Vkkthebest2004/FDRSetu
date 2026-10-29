@@ -1,0 +1,17 @@
+{
+  "name": "aicte-fdr-management-portal",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AICTE Fixed Deposit Receipt (FDR) & Security Deposit Management Portal",
+  "scripts": {
+    "dev": "concurrently -n \"NEXT,AI\" -c \"blue,green\" \"npm run dev:frontend\" \"npm run dev:ai\"",
+    "dev:frontend": "cd frontend && pnpm dev",
+    "dev:ai": "cd ai-service && ./venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload",
+    "build": "cd frontend && pnpm run build",
+    "test:ai": "cd ai-service && PYTHONPATH=. ./venv/bin/pytest -v tests/",
+    "test": "npm run test:ai && npm run build"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}

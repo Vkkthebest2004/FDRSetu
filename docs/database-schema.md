@@ -188,3 +188,4 @@ Append-only tamper-evident compliance audit trail.
 - `reason` (TEXT)
 - `ip_address` (VARCHAR(64))
 - `created_at` (TIMESTAMPTZ, DEFAULT now())
+

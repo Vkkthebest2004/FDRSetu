@@ -305,3 +305,4 @@ CREATE TRIGGER trg_institutions_updated_at BEFORE UPDATE ON public.institutions 
 CREATE TRIGGER trg_fdr_records_updated_at BEFORE UPDATE ON public.fdr_records FOR EACH ROW EXECUTE FUNCTION public.handle_updated_at();
 CREATE TRIGGER trg_verification_cases_updated_at BEFORE UPDATE ON public.verification_cases FOR EACH ROW EXECUTE FUNCTION public.handle_updated_at();
 CREATE TRIGGER trg_release_requests_updated_at BEFORE UPDATE ON public.release_requests FOR EACH ROW EXECUTE FUNCTION public.handle_updated_at();
+

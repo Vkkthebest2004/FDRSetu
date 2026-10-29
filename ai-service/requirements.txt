@@ -11,3 +11,4 @@ pytest>=8.3.3
 python-multipart>=0.0.12
 supabase>=2.9.0
 python-dotenv>=1.0.1
+

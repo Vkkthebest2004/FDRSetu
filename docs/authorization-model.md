@@ -30,3 +30,4 @@ PostgreSQL helper functions defined with `SECURITY DEFINER` and fixed `search_pa
 ### 3.2 Audit Log Protection
 - Standard application users have `SELECT` on audit events relevant to their scope.
 - `UPDATE` and `DELETE` on `audit_events` are strictly denied to **all** roles (including administrators). Only trusted triggers or server-side functions insert audit events.
+

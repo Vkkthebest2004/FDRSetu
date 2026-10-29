@@ -242,3 +242,4 @@ BEGIN
         (u_officer, 'scrutiny_officer', 'RETURN_FOR_CORRECTION', 'fdr_records', fdr_3, 'SUCCESS', 'Amount discrepancy detected between submitted data and OCR receipt', '14.139.60.2');
 
 END $$;
+

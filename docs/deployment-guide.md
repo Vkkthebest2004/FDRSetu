@@ -65,3 +65,4 @@ docker run -p 8000:8000 --env-file ../.env aicte-fdr-ai-service
 
 ### 3.2 Next.js Deployment
 Deployable to Vercel, Railway, or AWS ECS with standard Next.js standalone build.
+

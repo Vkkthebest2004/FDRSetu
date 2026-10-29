@@ -50,3 +50,4 @@ Tuned specifically for Indian banking practices and AICTE Approval Process Handb
 - **HIGH Severity**: Any mismatch between institution-submitted amount and document receipt amount, or bank/FDR number differences.
 - **MEDIUM Severity**: Maturity date differences or unreadable IFSC codes.
 - **LOW Severity**: Minor branch naming or whitespace formatting variations.
+

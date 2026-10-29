@@ -35,3 +35,4 @@ class PDFExtractor:
         doc.close()
         combined_text = "\n\n".join(full_text)
         return combined_text, page_images
+

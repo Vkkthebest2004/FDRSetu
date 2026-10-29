@@ -77,3 +77,4 @@ Submits an uploaded document for OCR and extraction.
 - `POST /api/fdr/release`: Release/refund request initiation.
 - `POST /api/fdr/release/decide`: Recommendation & approval.
 - `GET /api/reports/export`: Authorized CSV export of filtered records.
+

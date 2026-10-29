@@ -53,3 +53,4 @@ class OCREngine:
         except Exception as e:
             # Fallback if tesseract encounters an error
             return "", 0.0
+

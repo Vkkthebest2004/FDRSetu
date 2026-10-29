@@ -45,3 +45,4 @@ class ProcessDocumentResponse(BaseModel):
     discrepancies: List[DiscrepancyItem]
     errors_warnings: List[str]
     raw_text_snippet: Optional[str] = None
+

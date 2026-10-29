@@ -175,3 +175,4 @@ export default function AuditTrailPage() {
     </AppLayout>
   );
 }
+

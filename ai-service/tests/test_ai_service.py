@@ -93,3 +93,4 @@ def test_authorized_process_document_call():
     assert data["processing_status"] == "COMPLETED"
     assert data["extracted_fields"]["fdr_number"] == "SBI-DEL-FDR-2023-8891"
     assert data["extracted_fields"]["amount"] == 1500000.00
+

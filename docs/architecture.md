@@ -65,3 +65,4 @@ The platform replaces manual verification with a secure, automated workflow comb
    Document buckets are strictly private. Files are accessed exclusively via temporary signed URLs generated on the server with user identity checks.
 4. **Service-to-Service Security**:
    FastAPI endpoints are protected with mutual API token verification and never exposed to the public browser.
+

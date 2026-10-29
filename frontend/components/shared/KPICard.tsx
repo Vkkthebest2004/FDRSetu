@@ -39,3 +39,4 @@ export function KPICard({ title, value, subtitle, icon: Icon, badge, trend }: KP
     </div>
   );
 }
+
