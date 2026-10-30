@@ -9,6 +9,7 @@ This folder contains the complete, authoritative, and exhaustive technical imple
 
 | File | Subsystem / Topic | Description |
 | :--- | :--- | :--- |
+| **[`PROJECT-DOSSIER-FEASIBILITY-IMPACT-RESEARCH.md`](./PROJECT-DOSSIER-FEASIBILITY-IMPACT-RESEARCH.md)** | **★ Comprehensive Master Dossier ★** | **Full project dossier covering Technical Implementation, Feasibility & Viability, Impacts & Benefits, and Research Foundations & Statutory References.** |
 | **[`COMPLETE-TECHNICAL-EXPLANATION.md`](./COMPLETE-TECHNICAL-EXPLANATION.md)** | **Master Technical Report** | **Exhaustive end-to-end report documenting all subsystems, architecture decisions, code artifacts, and chronological development log.** |
 | **[`01-SYSTEM-ARCHITECTURE.md`](./01-SYSTEM-ARCHITECTURE.md)** | System Architecture & Flow | Microservice topology, dual-layer backend, sequence diagrams, and regulatory mandate. |
 | **[`02-DATABASE-AND-SUPABASE.md`](./02-DATABASE-AND-SUPABASE.md)** | PostgreSQL Schema & Supabase | 12 tables, indexes, constraints, updated_at triggers, RLS security policies, and seed fixtures. |
