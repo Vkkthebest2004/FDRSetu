@@ -9,6 +9,7 @@ This folder contains the complete, authoritative, and exhaustive technical imple
 
 | File | Subsystem / Topic | Description |
 | :--- | :--- | :--- |
+| **[`COMPLETE-TECHNICAL-EXPLANATION.md`](./COMPLETE-TECHNICAL-EXPLANATION.md)** | **Master Technical Report** | **Exhaustive end-to-end report documenting all subsystems, architecture decisions, code artifacts, and chronological development log.** |
 | **[`01-SYSTEM-ARCHITECTURE.md`](./01-SYSTEM-ARCHITECTURE.md)** | System Architecture & Flow | Microservice topology, dual-layer backend, sequence diagrams, and regulatory mandate. |
 | **[`02-DATABASE-AND-SUPABASE.md`](./02-DATABASE-AND-SUPABASE.md)** | PostgreSQL Schema & Supabase | 12 tables, indexes, constraints, updated_at triggers, RLS security policies, and seed fixtures. |
 | **[`03-AI-DOCUMENT-EXTRACTION.md`](./03-AI-DOCUMENT-EXTRACTION.md)** | Python AI/OCR Microservice | OpenCV preprocessing, Tesseract OCR, PyMuPDF digital text extraction, and discrepancy scoring. |
@@ -66,3 +67,4 @@ To run individual verification suites:
 - **Frontend Auth & Roles**: `npm run test:frontend`
 - **Detailed Supabase & Storage**: `npm run test:supabase`
 - **Next.js Production Build**: `npm run build`
+
