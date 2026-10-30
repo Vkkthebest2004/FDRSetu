@@ -245,6 +245,13 @@ export default function LandingPage() {
 
           <div className="flex items-center gap-3">
             <Link
+              href="/register"
+              className="hidden sm:inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-slate-300 hover:bg-slate-50 text-slate-700 text-sm font-semibold transition-all hover:border-slate-400"
+            >
+              <Building2 className="w-4 h-4 text-blue-700" />
+              <span>Register Institution</span>
+            </Link>
+            <Link
               href="/login"
               className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#0f294a] hover:bg-[#153a66] text-white text-sm font-semibold shadow-sm transition-all hover:shadow-md hover:scale-[1.02] active:scale-[0.99] group"
             >
@@ -292,6 +299,13 @@ export default function LandingPage() {
                 >
                   <span>Institutional Portal Sign In</span>
                   <ArrowRight className="w-5 h-5 text-amber-400 group-hover:translate-x-1 transition-transform" />
+                </Link>
+                <Link
+                  href="/register"
+                  className="inline-flex items-center gap-2 px-5 py-3.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-base font-semibold shadow-xs transition-all hover:scale-[1.01]"
+                >
+                  <Building2 className="w-5 h-5 text-emerald-200" />
+                  <span>Register Institution</span>
                 </Link>
                 <a
                   href="#calculator"

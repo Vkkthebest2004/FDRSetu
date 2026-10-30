@@ -482,6 +482,21 @@ function LoginFormContent() {
               </button>
             </form>
 
+            {/* New Institution Registration Banner */}
+            <div className="mt-4 p-3.5 rounded-xl bg-blue-50/80 border border-blue-200 text-xs text-blue-950 flex items-center justify-between">
+              <div>
+                <span className="font-bold block">New Technical Institution?</span>
+                <span className="text-[11px] text-blue-800">Register institution to submit mandatory FDRs</span>
+              </div>
+              <Link
+                href="/register"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-700 hover:bg-blue-800 text-white font-bold text-xs shadow-xs transition-colors shrink-0 group"
+              >
+                <span>Register</span>
+                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+              </Link>
+            </div>
+
             <div className="mt-6 pt-5 border-t border-slate-100 text-[11px] text-slate-500 flex items-start gap-2">
               <ShieldAlert className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
               <span className="leading-relaxed">

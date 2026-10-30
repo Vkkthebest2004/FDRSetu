@@ -96,7 +96,33 @@ async function runAuthTests() {
   assert.strictEqual(officerFdrs.length > instFdrs.length, true, 'Officer should see records across institutions');
   console.log(`  -> Verified: Scrutiny officer has multi-institution oversight (${officerFdrs.length} records).`);
 
-  console.log('\nAll 5 Authentication & Authorization test suites PASSED successfully!');
+  // 6. New User Registration Flow
+  console.log('[Test 6] Testing New Institutional User Registration (Sign Up Flow)...');
+  const regResult = await FDRService.registerInstitutionUser({
+    email: 'principal@apextech.edu.in',
+    fullName: 'Prof. S. K. Sen',
+    designation: 'Principal',
+    phone: '+91 98765 12345',
+    aicteId: '1-9988776655',
+    institutionName: 'Apex Institute of Advanced Technology',
+    institutionType: 'Engineering & Technology',
+    state: 'Karnataka',
+    city: 'Bengaluru',
+  });
+
+  assert.strictEqual(regResult.user.email, 'principal@apextech.edu.in');
+  assert.strictEqual(regResult.user.system_role, 'institution_user');
+  assert.strictEqual(regResult.institution.aicte_id, '1-9988776655');
+
+  // Verify newly registered user is now active and isolated to their new institution
+  const currentUser = await FDRService.getCurrentUser();
+  assert.strictEqual(currentUser.email, 'principal@apextech.edu.in');
+  const registeredUserFdrs = await FDRService.getFDRs();
+  assert.strictEqual(registeredUserFdrs.length, 0, 'New institution should have 0 initial FDRs until submitted');
+
+  console.log(`  -> Verified: Successfully registered new user ${regResult.user.full_name} for ${regResult.institution.name}.`);
+
+  console.log('\nAll 6 Authentication, Authorization & Registration test suites PASSED successfully!');
 }
 
 runAuthTests().catch(err => {
