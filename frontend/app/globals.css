@@ -62,6 +62,27 @@ body {
   }
 }
 
+@keyframes spinSlow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes spinReverse {
+  from { transform: rotate(360deg); }
+  to { transform: rotate(0deg); }
+}
+
+@keyframes skeletonShimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes progressIndeterminate {
+  0% { transform: translateX(-100%); width: 20%; }
+  50% { transform: translateX(50%); width: 60%; }
+  100% { transform: translateX(200%); width: 20%; }
+}
+
 .animate-float {
   animation: float 4s ease-in-out infinite;
 }
@@ -76,6 +97,24 @@ body {
 
 .animate-scale-in {
   animation: scaleIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-spin-slow {
+  animation: spinSlow 14s linear infinite;
+}
+
+.animate-spin-reverse {
+  animation: spinReverse 9s linear infinite;
+}
+
+.animate-progress-indeterminate {
+  animation: progressIndeterminate 1.8s ease-in-out infinite;
+}
+
+.skeleton-pulse {
+  background: linear-gradient(90deg, #f1f5f9 0%, #e2e8f0 50%, #f1f5f9 100%);
+  background-size: 200% 100%;
+  animation: skeletonShimmer 1.5s infinite;
 }
 
 .shimmer-bar {
