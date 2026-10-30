@@ -128,6 +128,9 @@ async def process_document(
         # 3. Deterministic Discrepancy Analysis (Blueprint v2.0 Decimal arithmetic)
         discrepancies = DiscrepancyDetector.analyze(submitted_data, extracted, confidences)
 
+        # 4. AI Risk Assessment & Case Prioritization Scoring
+        risk_assessment = DiscrepancyDetector.calculate_risk_priority(submitted_data, extracted, discrepancies, confidences)
+
         # Build detailed field candidate evidence
         detailed_candidates: List[ExtractedFieldCandidate] = [
             ExtractedFieldCandidate(
@@ -170,6 +173,7 @@ async def process_document(
             detailed_candidates=detailed_candidates,
             confidence_scores=confidences,
             discrepancies=discrepancies,
+            risk_assessment=risk_assessment,
             errors_warnings=errors_warnings,
             raw_text_snippet=raw_text[:300] + ("..." if len(raw_text) > 300 else "")
         )

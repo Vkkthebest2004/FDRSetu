@@ -324,13 +324,54 @@ PSM 6 enforces a **single uniform block of text**, perfectly matching Fixed Depo
 The discrepancy engine evaluates the delta between claimed values and extracted values:
 1. **Amount Mismatch**:
    $$\Delta_{\text{amount}} = |V_{\text{submitted}} - V_{\text{extracted}}|$$
-   - If $\Delta > 0.01 \implies$ **Severity: HIGH**
-   - If $V_{\text{extracted}}$ not found $\implies$ **Severity: MEDIUM**
+   - If $\Delta > 0.01 \implies$ **Severity: HIGH** (`AMOUNT_MISMATCH`)
+   - If $V_{\text{extracted}}$ not found $\implies$ **Severity: MEDIUM** (`FIELD_NOT_FOUND`)
    - If $\Delta \le 0.01 \implies$ **Severity: NONE** (Verified)
 2. **Missing AICTE Joint Lien**:
-   If the document scan does not contain AICTE joint holder keywords $\implies$ **Severity: HIGH** (`Missing Regulatory Joint Lien`).
-3. **Tenure Compliance**:
-   If difference between issue date and maturity date is $< 1,825\text{ days}$ (5 years) $\implies$ **Severity: MEDIUM** (`Under 5-Year Lock-In Minimum`).
+   If the document scan does not contain AICTE joint holder keywords $\implies$ **Severity: HIGH** (`EXPECTED_LIEN_TEXT_NOT_DETECTED`).
+3. **Instrument Number Mismatch**:
+   If FDR number declared differs from certificate text $\implies$ **Severity: HIGH** (`INSTRUMENT_NUMBER_MISMATCH`).
+4. **Tenure Compliance**:
+   If difference between issue date and maturity date is $< 1,825\text{ days}$ (5 years) $\implies$ **Severity: MEDIUM** (`DATE_MISMATCH` / Under Lock-in Minimum).
+
+### 5.6 AI Risk Scoring & Case Prioritization Engine (Triage Model)
+In high-volume regulatory operations (AICTE oversees 11,000+ technical colleges and 8 Regional Offices), evaluating submissions chronologically (FIFO) leaves critical compliance exposures unattended.
+
+FDRSetu implements a mathematical **AI Risk Prioritization Engine** (`ai-service/app/services/discrepancy_detection.py`) that scores each submission on a scale of $0$ to $100$:
+
+$$R = \min\left(100, \; \sum_{k} W_{\text{discrepancy}}(k) + W_{\text{exposure}} + W_{\text{ocr}} + W_{\text{maturity}}\right)$$
+
+#### Risk Dimension Weights:
+1. **Discrepancy Severity ($W_{\text{discrepancy}}$)**:
+   - `AMOUNT_MISMATCH`: $+40$ pts (direct financial discrepancy)
+   - `EXPECTED_LIEN_TEXT_NOT_DETECTED`: $+30$ pts (missing mandatory joint lien)
+   - `INSTRUMENT_NUMBER_MISMATCH`: $+35$ pts (mismatched certificate identifier)
+   - `BANK_NAME_MISMATCH`: $+25$ pts (mismatched issuing bank)
+   - `FIELD_NOT_FOUND` / `DATE_MISMATCH`: $+15$ pts
+2. **Financial Exposure ($W_{\text{exposure}}$)**:
+   - Deposit Amount $\ge ₹ 35\text{ Lakhs}$: $+20$ pts
+   - Deposit Amount $\ge ₹ 20\text{ Lakhs}$: $+10$ pts
+3. **Extraction Confidence ($W_{\text{ocr}}$)**:
+   - Mean Confidence $< 0.70$: $+15$ pts
+   - Mean Confidence $< 0.85$: $+8$ pts
+4. **Maturity Proximity ($W_{\text{maturity}}$)**:
+   - Already Expired ($\le 0$ days): $+30$ pts
+   - Critical Expiry Window ($\le 30$ days): $+25$ pts
+   - Approaching Expiry ($\le 90$ days): $+15$ pts
+
+#### Actionable Priority Tiers:
+- **`CRITICAL` Tier ($R \ge 70$, Urgency: `IMMEDIATE`)**: Automatically surfaced at the very top of the scrutiny workbench; flags immediate audit intervention; prevents automated processing.
+- **`HIGH` Tier ($45 \le R < 70$, Urgency: `EXPEDITED`)**: Placed in expedited review queue; requires certified bank confirmation.
+- **`MEDIUM` Tier ($20 \le R < 45$, Urgency: `STANDARD`)**: Standard scrutiny officer queue for routine inspection.
+- **`LOW` Tier ($R < 20$, Urgency: `STANDARD`)**: Clean instrument with high OCR confidence; eligible for fast-track verification.
+
+### 5.7 Blueprint v2.0 Banking Verification Resilience
+When verifying bank authenticity via SFMS/API integrations, external banking webhooks may suffer timeouts or network jitter. Blueprint v2.0 implements non-blocking async verification with graceful fallback:
+```python
+async def verify_bank_details(bank_name: str, ifsc_code: str, fdr_number: str):
+    # Attempts bank API with 3.0s timeout
+    # On timeout, marks status: BANK_SERVICE_UNAVAILABLE without crashing scrutiny workflow
+```
 
 ---
 
@@ -420,6 +461,27 @@ Under AICTE financial guidelines:
 - **Approving Authority**: Has sole authority to execute financial releases (`canApproveRelease()` returns true only for `approving_authority`).
 - **Record Immutability**: Once submitted (`SUBMITTED`), institutions cannot edit FDR fields unless an officer marks the record `NEEDS_CORRECTION`.
 
+### 7.3 Hardened Immutability Triggers (`RAISE EXCEPTION`)
+Audit logs cannot be updated or deleted under any circumstance. Blueprint v2.0 enforces a hardened database-level trigger:
+```sql
+CREATE OR REPLACE FUNCTION public.prevent_audit_modification()
+RETURNS TRIGGER AS $$
+BEGIN
+  RAISE EXCEPTION 'Audit trail is strictly append-only. UPDATE or DELETE operations are forbidden.';
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_audit_events_immutable
+  BEFORE UPDATE OR DELETE ON public.audit_events
+  FOR EACH ROW EXECUTE FUNCTION public.prevent_audit_modification();
+```
+
+### 7.4 Private Object Storage with 15-Minute HMAC Signed URLs
+All physical FDR certificates and bank compliance letters are stored in the private Supabase Storage bucket `fdr-documents` (`public = false`). Direct HTTP access yields 403 Forbidden. Scrutiny officers and approvers access documents via cryptographically signed HMAC URLs with a 900-second (15-minute) Time-To-Live (TTL).
+
+### 7.5 Optimistic Concurrency Control
+To prevent race conditions, concurrent conflicting reviews, or double-release disbursement exploits, all transactional entities maintain an atomic integer `version` field. Updates evaluate `WHERE id = p_fdr_id AND version = p_expected_version`, immediately raising a `VERSION_CONFLICT` exception if a concurrent update occurred.
+
 ---
 
 ## 8. Deep Dive: Service Layer & Hybrid Persistence (`FDRService`)
@@ -452,7 +514,7 @@ The Next.js Route Handler `/api/ai/process-document` proxies file uploads to the
 
 ## 9. Automated Testing & Verification Suite
 
-The repository includes **19 automated tests** across 3 test suites, executed via `npm test`:
+The repository includes **25 automated tests** across 3 test suites, executed via `npm test`:
 
 ```
 > aicte-fdr-management-portal@1.0.0 test
@@ -467,9 +529,11 @@ Location: `ai-service/tests/test_ai_service.py` (Pytest 9.2.0)
 - `test_discrepancy_detection_matching`: Asserts matching values produce severity `NONE`.
 - `test_discrepancy_detection_amount_mismatch`: Asserts ₹ 15L vs ₹ 10L flags severity `HIGH`.
 - `test_authorized_process_document_call`: End-to-end multipart processing verification.
-*Result: **6 passed in 0.92s**.*
+- `test_blueprint_v2_bank_verification_timeout_unavailable`: Non-blocking async external bank API timeout resilience.
+- `test_ai_risk_prioritization_engine`: Validates composite risk scoring, tier categorization (`CRITICAL`, `HIGH`, `MEDIUM`, `LOW`), and urgency assignments.
+*Result: **8 passed in 0.51s**.*
 
-### 9.2 Frontend Auth & RBAC Suite (`npm run test:frontend`)
+### 9.2 Frontend Auth, Concurrency & Prioritization Suite (`npm run test:frontend`)
 Location: `frontend/tests/auth.test.ts` (`npx tsx`)
 - Test 1: Role Gate Functions (`isOfficerOrAdmin`, `isApproverOrAdmin`).
 - Test 2: Verification Scrutiny Permissions (`canReviewVerification`).
@@ -477,7 +541,10 @@ Location: `frontend/tests/auth.test.ts` (`npx tsx`)
 - Test 4: FDR Record State Mutation Restrictions (`canEditFDR`).
 - Test 5: Institution Data Isolation in `FDRService` (tenancy enforcement).
 - Test 6: New Institutional User Registration (Onboarding flow).
-*Result: **All 6 tests passed**.*
+- Test 7: Blueprint v2.0 Optimistic Concurrency & Versioning (`VERSION_CONFLICT`).
+- Test 8: Blueprint v2.0 Transactional Outbox Deduplication.
+- Test 9: AI Risk Scoring & Case Prioritization Engine (CRITICAL vs LOW validation).
+*Result: **All 9 tests passed**.*
 
 ### 9.3 Supabase Implementation Suite (`npm run test:supabase`)
 Location: `frontend/tests/supabase.test.ts` (`npx tsx`)
@@ -488,7 +555,8 @@ Location: `frontend/tests/supabase.test.ts` (`npx tsx`)
 - Test 5: SSR Client initialization.
 - Test 6: Service Layer CRUD transactions & verification state transitions.
 - Test 7: Signed URL generation for private documents.
-*Result: **All 7 tests passed**.*
+- Test 8: Blueprint v2.0 Modular Schema, Hardened Audit Triggers & Atomic Submit RPC.
+*Result: **All 8 tests passed**.*
 
 ### 9.4 Next.js Turbopack Production Build (`npm run build`)
 - Next.js 16.4.3 Turbopack compiler.

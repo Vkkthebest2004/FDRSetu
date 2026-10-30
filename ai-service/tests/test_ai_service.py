@@ -121,3 +121,31 @@ async def test_blueprint_v2_bank_verification_timeout_unavailable():
     assert result.result == "UNAVAILABLE"
     assert "timed out" in result.notes
     assert result.method == "AUTHORIZED_API"
+
+def test_ai_risk_prioritization_engine():
+    """
+    Tests AI-driven case prioritization:
+    A high-exposure deposit with a material amount mismatch must be categorized
+    into CRITICAL or HIGH priority tier with immediate urgency.
+    """
+    submitted = FDRSubmittedData(
+        fdr_number="SBI-FDR-9988",
+        bank_name="State Bank of India",
+        amount=5000000.00, # ₹ 50 Lakhs (High exposure)
+        maturity_date="2026-11-15" # Matures in < 30 days
+    )
+    extracted = FDRExtractedFields(
+        fdr_number="SBI-FDR-9988",
+        bank_name="State Bank of India",
+        amount=4000000.00, # ₹ 10 Lakhs mismatch
+        maturity_date="2026-11-15"
+    )
+
+    discrepancies = DiscrepancyDetector.analyze(submitted, extracted)
+    risk_result = DiscrepancyDetector.calculate_risk_priority(submitted, extracted, discrepancies)
+
+    assert risk_result.risk_score >= 70, f"Expected critical risk score >= 70, got {risk_result.risk_score}"
+    assert risk_result.priority_tier == "CRITICAL"
+    assert risk_result.urgency_level == "IMMEDIATE"
+    assert len(risk_result.risk_factors) >= 2
+

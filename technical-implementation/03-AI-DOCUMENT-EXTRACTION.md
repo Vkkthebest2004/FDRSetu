@@ -194,31 +194,108 @@ The Next.js route `/api/ai/process-document` injects `process.env.AI_SERVICE_API
 
 ---
 
-## 8. Verification & Pytest Results
+## 8. AI Risk Scoring & Case Prioritization Engine (Triage Model)
 
-The AI extraction suite is validated using automated unit tests located at `ai-service/tests/test_ai_service.py`:
+In high-volume statutory environments where over 11,000 institutions submit thousands of FDR renewals and release applications simultaneously, processing submissions chronologically (FIFO) leads to severe compliance vulnerabilities. High-exposure instruments (> ₹35 Lakhs), receipts with altered amounts, or expired deposits could linger in queues while compliant, low-risk cases consume scrutiny hours.
+
+FDRSetu implements a deterministic, multi-factor **AI Risk Prioritization Engine** (`ai-service/app/services/discrepancy_detection.py`) that computes an objective risk score $R \in [0, 100]$, assigns an actionable **Priority Tier** (`CRITICAL`, `HIGH`, `MEDIUM`, `LOW`), and establishes an **Urgency Level** (`IMMEDIATE`, `EXPEDITED`, `STANDARD`).
+
+### 8.1 Mathematical Risk Scoring Formulation
+
+The composite risk score $R$ is formulated as:
+
+$$R = \min\left(100, \; \sum_{k} W_{\text{discrepancy}}(k) + W_{\text{exposure}} + W_{\text{ocr}} + W_{\text{maturity}}\right)$$
+
+Where the weighted components evaluate four orthogonal risk dimensions:
+
+#### 1. Discrepancy Severity Weights ($W_{\text{discrepancy}}$)
+- **`AMOUNT_MISMATCH`** ($+40$ pts): Direct financial discrepancy between declared deposit and certified bank instrument. Indicates potential fraud, altered certificates, or under-collateralization.
+- **`EXPECTED_LIEN_TEXT_NOT_DETECTED`** ($+30$ pts): Failure to detect the mandatory statutory lien clause in favour of AICTE.
+- **`INSTRUMENT_NUMBER_MISMATCH`** ($+35$ pts): Mismatch between declared FDR number and OCR receipt text. Indicates counterfeit or re-used certificates.
+- **`BANK_NAME_MISMATCH`** ($+25$ pts): Mismatch in issuer bank or non-scheduled bank entity.
+- **`FIELD_NOT_FOUND` / `DATE_MISMATCH`** ($+15$ pts each): Incomplete certificate scan, obscured elements, or tenure discrepancies.
+
+#### 2. Financial Exposure Weights ($W_{\text{exposure}}$)
+- **High Financial Exposure ($\ge ₹ 35\text{ Lakhs}$)**: $+20$ pts (High-risk capital exposure demanding immediate senior oversight).
+- **Substantial Financial Exposure ($\ge ₹ 20\text{ Lakhs}$)**: $+10$ pts.
+
+#### 3. Extraction Quality & OCR Confidence ($W_{\text{ocr}}$)
+- **Low Confidence ($C < 0.70$)**: $+15$ pts (Indicates low-resolution scans, tampering, or heavily blurred text).
+- **Sub-optimal Confidence ($0.70 \le C < 0.85$)**: $+8$ pts.
+
+#### 4. Maturity Urgency & Legal Default Risk ($W_{\text{maturity}}$)
+- **Already Expired ($\le 0$ days remaining)**: $+30$ pts (Critical legal default risk; requires immediate renewal notice or encashment notice).
+- **Critical Expiry Window ($1 \text{ to } 30$ days remaining)**: $+25$ pts.
+- **Approaching Expiry Window ($31 \text{ to } 90$ days remaining)**: $+15$ pts.
+
+### 8.2 Priority Tiers and Operational Action Protocols
+
+| Composite Score ($R$) | Priority Tier | Urgency Level | Recommended Operational Action |
+| :--- | :--- | :--- | :--- |
+| **$R \ge 70$** | `CRITICAL` | `IMMEDIATE` | Flag immediately; prioritize at top of scrutiny queue; alert Regional Director; halt automated processing. |
+| **$45 \le R < 70$** | `HIGH` | `EXPEDITED` | Prioritize ahead of standard queues; request official bank verification via SFMS/API. |
+| **$20 \le R < 45$** | `MEDIUM` | `STANDARD` | Standard scrutiny officer queue for routine inspection. |
+| **$R < 20$** | `LOW` | `STANDARD` | High-fidelity instrument with zero discrepancies; eligible for streamlined verification. |
+
+### 8.3 Pydantic Data Contract (`ai-service/app/schemas/fdr.py`)
+
+```python
+class RiskPrioritizationResult(BaseModel):
+    risk_score: int = Field(..., ge=0, le=100, description="Composite AI Risk Score (0-100)")
+    priority_tier: str = Field(..., description="CRITICAL, HIGH, MEDIUM, LOW")
+    urgency_level: str = Field(..., description="IMMEDIATE, EXPEDITED, STANDARD")
+    risk_factors: List[str] = Field(default_factory=list, description="Identified risk factors")
+    recommended_action: str = Field(..., description="Recommended operational action for reviewer")
+```
+
+---
+
+## 9. Internal API Authentication & Network Security
+
+The AI microservice is not exposed directly to the public internet. Communication between Next.js and FastAPI requires an internal API key:
+
+```python
+def verify_internal_api_key(x_internal_api_key: Optional[str] = Header(None)):
+    if not x_internal_api_key or x_internal_api_key != settings.API_KEY:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Unauthorized: Invalid or missing X-Internal-API-Key"
+        )
+    return True
+```
+
+The Next.js route `/api/ai/process-document` injects `process.env.AI_SERVICE_API_KEY` when proxying user uploads.
+
+---
+
+## 10. Verification & Pytest Results
+
+The AI extraction and prioritization suite is validated using automated unit tests located at `ai-service/tests/test_ai_service.py`:
 
 ```bash
 cd ai-service
-./venv/bin/pytest -v
+./venv/bin/pytest -v tests/
 ```
 
-### Test Suite Execution Output:
+### Test Suite Execution Output (8/8 Passed):
 ```
 ============================= test session starts ==============================
-platform darwin -- Python 3.12.9, pytest-9.2.0, pluggy-1.6.0
+platform darwin -- Python 3.12.13, pytest-9.2.0, pluggy-1.7.0
 rootdir: /Users/vaibhavkrishnakesarwani/Desktop/FDRPROJECT/ai-service
 configfile: pytest.ini
-collected 6 items
+plugins: anyio-4.15.1
+collected 8 items
 
-tests/test_ai_service.py::test_health PASSED                             [ 16%]
-tests/test_ai_service.py::test_process_document_success PASSED            [ 33%]
-tests/test_ai_service.py::test_fdr_extractor_fields PASSED               [ 50%]
-tests/test_ai_service.py::test_discrepancy_amount_mismatch PASSED        [ 66%]
-tests/test_ai_service.py::test_discrepancy_dates_and_joint PASSED       [ 83%]
-tests/test_ai_service.py::test_auth_failure PASSED                       [100%]
+tests/test_ai_service.py::test_health_endpoint PASSED                    [ 12%]
+tests/test_ai_service.py::test_unauthorized_internal_endpoint PASSED     [ 25%]
+tests/test_ai_service.py::test_fdr_field_extraction PASSED               [ 37%]
+tests/test_ai_service.py::test_discrepancy_detection_matching PASSED     [ 50%]
+tests/test_ai_service.py::test_discrepancy_detection_amount_mismatch PASSED [ 62%]
+tests/test_ai_service.py::test_authorized_process_document_call PASSED   [ 75%]
+tests/test_ai_service.py::test_blueprint_v2_bank_verification_timeout_unavailable[asyncio] PASSED [ 87%]
+tests/test_ai_service.py::test_ai_risk_prioritization_engine PASSED      [100%]
 
-============================== 6 passed in 0.82s ===============================
+======================== 8 passed, 2 warnings in 0.51s =========================
 ```
-All 6 tests execute in under 1 second, validating image preprocessing, regex extraction, discrepancy rules, and API key authentication.
+All 8 tests execute in ~0.51 seconds, thoroughly validating OpenCV preprocessing, regex extraction, discrepancy detection, banking verification timeouts, and the AI risk scoring & prioritization engine.
 

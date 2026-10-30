@@ -43,6 +43,13 @@ class DiscrepancyItem(BaseModel):
     explanation: Optional[str] = None
     evidence: Optional[FieldEvidence] = None
 
+class RiskPrioritizationResult(BaseModel):
+    risk_score: int = Field(default=0, ge=0, le=100) # 0 to 100
+    priority_tier: str = "LOW" # CRITICAL, HIGH, MEDIUM, LOW
+    urgency_level: str = "STANDARD" # IMMEDIATE, EXPEDITED, STANDARD
+    risk_factors: List[str] = []
+    recommended_action: str = "Standard verification review"
+
 class ProcessDocumentRequest(BaseModel):
     document_id: str
     fdr_id: Optional[str] = None
@@ -58,6 +65,7 @@ class ProcessDocumentResponse(BaseModel):
     detailed_candidates: List[ExtractedFieldCandidate] = []
     confidence_scores: Dict[str, float]
     discrepancies: List[DiscrepancyItem]
+    risk_assessment: Optional[RiskPrioritizationResult] = None
     errors_warnings: List[str]
     raw_text_snippet: Optional[str] = None
     disclaimer: str = "AI output provides assistive text extraction and heuristic flags only; it does not certify instrument authenticity, legal validity, or banking clearance."

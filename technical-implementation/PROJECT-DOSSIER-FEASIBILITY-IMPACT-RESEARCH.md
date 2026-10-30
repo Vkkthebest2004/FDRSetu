@@ -290,6 +290,45 @@ Located in `ai-service/app/services/bank_verification.py`, this implements the `
 
 ---
 
+## 2.6 AI Risk Scoring & Dynamic Case Prioritization Engine (Triage Architecture)
+
+With over 11,000 affiliated technical institutions across India submitting deposits, processing cases chronologically (FIFO) creates catastrophic regulatory vulnerabilities. An institution attempting to pass an invalid or expired ₹35 Lakh deposit could remain unscrutinized at the bottom of the queue while routine ₹1 Lakh submissions consume reviewer capacity.
+
+FDRSetu introduces a multi-factor **AI Case Prioritization & Risk Scoring Engine** (`ai-service/app/services/discrepancy_detection.py` and `frontend/lib/supabase/service.ts`) that scores every pending submission $R \in [0, 100]$:
+
+$$R = \min\left(100, \; \sum_{k} W_{\text{discrepancy}}(k) + W_{\text{exposure}} + W_{\text{ocr}} + W_{\text{maturity}}\right)$$
+
+### Risk Weight Formulation:
+1. **Discrepancy Severity ($W_{\text{discrepancy}}$)**:
+   - `AMOUNT_MISMATCH` ($+40$ pts): Direct capital delta between bank certificate and claimed value.
+   - `EXPECTED_LIEN_TEXT_NOT_DETECTED` ($+30$ pts): Failure to locate mandatory AICTE statutory lien.
+   - `INSTRUMENT_NUMBER_MISMATCH` ($+35$ pts): Potential re-used or counterfeit instrument ID.
+   - `BANK_NAME_MISMATCH` ($+25$ pts): Non-matching issuing institution.
+   - `FIELD_NOT_FOUND` / `DATE_MISMATCH` ($+15$ pts): Incomplete scan or tenure violation.
+2. **Financial Exposure ($W_{\text{exposure}}$)**:
+   - Deposit $\ge ₹ 35\text{ Lakhs}$: $+20$ pts (High systemic exposure).
+   - Deposit $\ge ₹ 20\text{ Lakhs}$: $+10$ pts.
+3. **Extraction Confidence ($W_{\text{ocr}}$)**:
+   - Confidence $< 70\%$: $+15$ pts (Unclear scan, possible digital tampering).
+   - Confidence $< 85\%$: $+8$ pts.
+4. **Maturity Proximity ($W_{\text{maturity}}$)**:
+   - Already Expired ($\le 0$ days): $+30$ pts.
+   - Expiry $\le 30$ days: $+25$ pts.
+   - Expiry $\le 90$ days: $+15$ pts.
+
+### Priority Tiers & Automated Routing Protocols:
+- **`CRITICAL` (Score $70-100$, Urgency: `IMMEDIATE`)**: Placed at top of scrutiny queue with a Crimson badge; halts automated pipelines; demands senior forensic audit.
+- **`HIGH` (Score $45-69$, Urgency: `EXPEDITED`)**: Expedited queue; alerts Regional Officer; triggers bank API re-verification.
+- **`MEDIUM` (Score $20-44$, Urgency: `STANDARD`)**: Standard scrutiny officer queue for routine inspection.
+- **`LOW` (Score $0-19$, Urgency: `STANDARD`)**: Zero discrepancies and high confidence; eligible for fast-track verification.
+
+### Scrutiny Workbench Triage Controls (`frontend/app/verification/page.tsx`):
+- **Triage Filter Pills**: One-click toggling between `All`, `High Risk`, `Discrepancy`, and `Expiring (<90d)`.
+- **Intelligent Sorting**: Defaults to `AI Risk (Highest First)`, with options for `Deposit Amount (High-Low)` and `Maturity Date (Soonest)`.
+- **Visual Evidence Cards**: Direct rendering of Priority Badges (`CRITICAL · 85`), Identified Risk Tags, and the Dedicated AI Risk Assessment Panel in the right inspection pane.
+
+---
+
 ## 2.6 Frontend Architecture, UI/UX Engineering & CSS Keyframes
 
 The web application is built on **Next.js 16 (App Router)** with React 19, TypeScript (strict mode), and Tailwind CSS v4.
@@ -374,20 +413,20 @@ Implemented in `frontend/lib/errors/problem-details.ts`, APIs return typed RFC 9
 
 ---
 
-## 2.9 Automated Quality Assurance & 23-Test Verification Suite
+## 2.10 Automated Quality Assurance & 25-Test Verification Suite
 
-The repository incorporates **23 automated tests** across three decoupled test runners, executed via `npm test`:
+The repository incorporates **25 automated tests** across three decoupled test runners, executed via `npm test`:
 
 ```
 ================================================================
 AICTE FDR PORTAL: MASTER VERIFICATION RUNNER
 ================================================================
-✓ Python AI & Bank Verification Suite (Pytest):   7/7 tests passed (0.66s)
-✓ Next.js Auth & Optimistic Concurrency Suite:    8/8 tests passed
-✓ Supabase Schema, RLS & v2 Migration Suite:     8/8 tests passed
-✓ Next.js Turbopack Production Compilation:       21/21 routes statically generated (0 errors)
+✓ Python AI & Prioritization Suite (Pytest):   8/8 tests passed (0.51s)
+✓ Next.js Auth, Concurrency & Triage Suite:    9/9 tests passed
+✓ Supabase Schema, RLS & v2 Migration Suite:   8/8 tests passed
+✓ Next.js Turbopack Production Compilation:     21/21 routes statically generated (0 errors)
 ================================================================
-ALL 23 AUTOMATED TESTS & PRODUCTION BUILD PASSED
+ALL 25 AUTOMATED TESTS & PRODUCTION BUILD PASSED
 ```
 
 ---
@@ -595,3 +634,4 @@ The **AICTE Security Deposit / FDR Management Portal (FDRSetu)** demonstrates a 
 
 The codebase is open-source and publicly accessible on GitHub at:  
 👉 **[https://github.com/Vkkthebest2004/FDRSetu](https://github.com/Vkkthebest2004/FDRSetu)**
+

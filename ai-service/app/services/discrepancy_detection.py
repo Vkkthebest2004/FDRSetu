@@ -5,7 +5,8 @@ from app.schemas.fdr import (
     FDRSubmittedData, 
     FDRExtractedFields, 
     DiscrepancyItem,
-    FieldEvidence
+    FieldEvidence,
+    RiskPrioritizationResult
 )
 
 class DiscrepancyDetector:
@@ -196,6 +197,124 @@ class DiscrepancyDetector:
                 ))
 
         return discrepancies
+
+    @classmethod
+    def calculate_risk_priority(
+        cls,
+        submitted: Optional[FDRSubmittedData],
+        extracted: FDRExtractedFields,
+        discrepancies: List[DiscrepancyItem],
+        confidences: Optional[dict] = None
+    ) -> RiskPrioritizationResult:
+        """
+        Computes composite AI risk score (0-100) and triage priority tier.
+        Enables scrutiny officers and approving authorities to prioritize high-risk
+        or high-exposure compliance cases immediately.
+        """
+        score = 0
+        factors: List[str] = []
+        confs = confidences or {}
+
+        # 1. Discrepancy Severity Penalties
+        for d in discrepancies:
+            if d.has_mismatch:
+                if d.code == "AMOUNT_MISMATCH":
+                    score += 40
+                    factors.append(f"Material Amount Discrepancy ({d.submitted_value} vs {d.extracted_value})")
+                elif d.code == "EXPECTED_LIEN_TEXT_NOT_DETECTED":
+                    score += 30
+                    factors.append("Missing AICTE Statutory Joint Lien Endorsement")
+                elif d.code == "INSTRUMENT_NUMBER_MISMATCH":
+                    score += 35
+                    factors.append("Instrument Certificate Number Mismatch")
+                elif d.code == "BANK_NAME_MISMATCH":
+                    score += 25
+                    factors.append("Issuing Bank Name Mismatch")
+                elif d.code == "FIELD_NOT_FOUND":
+                    score += 15
+                    factors.append(f"Required Field Unextracted: {d.field.upper()}")
+                else:
+                    score += 10
+                    factors.append(f"Anomaly Detected: {d.field.upper()}")
+
+        # 2. Financial Exposure Weights
+        amount = None
+        if submitted and submitted.amount:
+            amount = float(submitted.amount)
+        elif extracted.amount:
+            amount = float(extracted.amount)
+
+        if amount:
+            if amount >= 3500000.0:  # >= 35 Lakhs
+                score += 20
+                factors.append(f"High Financial Exposure: ₹ {amount:,.2f}")
+            elif amount >= 2000000.0:  # >= 20 Lakhs
+                score += 10
+                factors.append(f"Significant Exposure: ₹ {amount:,.2f}")
+
+        # 3. Optical Extraction Quality & Confidence
+        overall_conf = confs.get("overall", 0.95)
+        if overall_conf < 0.70:
+            score += 15
+            factors.append(f"Low OCR Extraction Confidence ({overall_conf:.0%}) - Manual Inspection Required")
+        elif overall_conf < 0.85:
+            score += 8
+            factors.append(f"Moderate OCR Confidence ({overall_conf:.0%})")
+
+        # 4. Proximity to Maturity (Urgency)
+        mat_date_str = (submitted.maturity_date if submitted else None) or extracted.maturity_date
+        if mat_date_str:
+            try:
+                # Try parsing standard formats
+                mat_dt = None
+                for fmt in ("%Y-%m-%d", "%d/%m/%Y", "%d-%m-%Y"):
+                    try:
+                        mat_dt = datetime.strptime(mat_date_str.strip(), fmt)
+                        break
+                    except ValueError:
+                        continue
+                if mat_dt:
+                    days_remaining = (mat_dt - datetime.now()).days
+                    if days_remaining <= 0:
+                        score += 30
+                        factors.append("Instrument Already Matured (Lien Liquidation Risk)")
+                    elif days_remaining <= 30:
+                        score += 25
+                        factors.append(f"Imminent Expiry ({days_remaining} days remaining)")
+                    elif days_remaining <= 90:
+                        score += 15
+                        factors.append(f"Approaching Expiry ({days_remaining} days remaining)")
+            except Exception:
+                pass
+
+        # Clamp score between 0 and 100
+        final_score = min(100, max(0, score))
+
+        # Assign Tier & Urgency
+        if final_score >= 70:
+            tier = "CRITICAL"
+            urgency = "IMMEDIATE"
+            action = "Immediate priority officer scrutiny required: Potential material discrepancy or high financial exposure"
+        elif final_score >= 45:
+            tier = "HIGH"
+            urgency = "EXPEDITED"
+            action = "Expedited verification: Document exhibits notable anomalies or approaching maturity"
+        elif final_score >= 20:
+            tier = "MEDIUM"
+            urgency = "STANDARD"
+            action = "Standard verification: Minor review flags or moderate exposure"
+        else:
+            tier = "LOW"
+            urgency = "STANDARD"
+            action = "Routine verification: Clean extraction with matching fields"
+
+        return RiskPrioritizationResult(
+            risk_score=final_score,
+            priority_tier=tier,
+            urgency_level=urgency,
+            risk_factors=factors,
+            recommended_action=action
+        )
 
     @staticmethod
     def _clean_str(val: Optional[str]) -> str:

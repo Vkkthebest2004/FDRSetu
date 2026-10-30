@@ -171,7 +171,36 @@ async function runAuthTests() {
   assert.strictEqual(outboxResult.dedupeKey, dedupeKey);
   console.log(`  -> Verified: Enqueued outbox alert with idempotent key '${dedupeKey}'.`);
 
-  console.log('\nAll 8 Authentication, Authorization, Optimistic Concurrency & Registration test suites PASSED successfully!');
+  // 9. AI Risk Scoring & Triage Prioritization Engine
+  console.log('[Test 9] Testing AI Risk Scoring & Case Prioritization Engine...');
+  // High-risk case: Flagged discrepancy + ₹ 35L exposure
+  const highRiskFdr: FDRRecord = {
+    ...v2Fdr,
+    amount: 3500000,
+    review_status: 'NEEDS_CORRECTION',
+    verification_status: 'DISCREPANCY_FLAGGED',
+    maturity_date: '2026-11-20', // Maturing in < 30 days
+  };
+  const assessment = FDRService.calculateRiskAssessment(highRiskFdr);
+  assert.strictEqual(assessment.priority_tier, 'CRITICAL', 'Discrepancy + imminent expiry + 35L exposure must evaluate to CRITICAL');
+  assert.strictEqual(assessment.urgency_level, 'IMMEDIATE');
+  assert.strictEqual(assessment.risk_score >= 70, true, `Expected risk score >= 70, got ${assessment.risk_score}`);
+  assert.strictEqual(assessment.risk_factors.length >= 2, true);
+
+  // Clean compliant case
+  const cleanFdr: FDRRecord = {
+    ...v2Fdr,
+    amount: 1000000,
+    review_status: 'ACCEPTED',
+    verification_status: 'VERIFIED',
+    maturity_date: '2031-01-01', // 5 years out
+  };
+  const cleanAssessment = FDRService.calculateRiskAssessment(cleanFdr);
+  assert.strictEqual(cleanAssessment.priority_tier, 'LOW', 'Compliant clean deposit must evaluate to LOW priority');
+  assert.strictEqual(cleanAssessment.risk_score < 40, true);
+  console.log(`  -> Verified: AI Risk Engine classified high-risk case as CRITICAL (${assessment.risk_score}/100) and compliant case as LOW (${cleanAssessment.risk_score}/100).`);
+
+  console.log('\nAll 9 Authentication, Authorization, Optimistic Concurrency, Outbox & AI Prioritization test suites PASSED successfully!');
 }
 
 runAuthTests().catch(err => {
