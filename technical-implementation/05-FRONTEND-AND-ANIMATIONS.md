@@ -159,3 +159,4 @@ Next.js 16 React Suspense boundaries provide instant visual feedback during page
    - Preserves identical layout dimensions, rendering pulse placeholders for input fields and action buttons to ensure zero cumulative layout shift (CLS = 0).
 3. **AppLayout Suspense Boundaries**:
    - In `components/layout/AppLayout.tsx`, header navigation and user avatars are wrapped in `<Suspense>` so the page content begins streaming immediately while session validation completes.
+

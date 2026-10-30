@@ -150,3 +150,4 @@ Follow this script during your practical demonstration:
 - Click "Admin Portal" -> "Audit Logs".
 - Show the complete event ledger: every submission, verification, and approval has a cryptographically linked UUID, user timestamp, and immutable rule preventing tampering.
 ```
+

@@ -221,3 +221,4 @@ tests/test_ai_service.py::test_auth_failure PASSED                       [100%]
 ============================== 6 passed in 0.82s ===============================
 ```
 All 6 tests execute in under 1 second, validating image preprocessing, regex extraction, discrepancy rules, and API key authentication.
+

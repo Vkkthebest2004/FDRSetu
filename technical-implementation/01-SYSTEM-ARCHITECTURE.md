@@ -98,3 +98,4 @@ The system enforces a strict 4-stage lifecycle ensuring compliance, accountabili
 3. **Ethical AI Guardrails**: The Python AI service assists human officers by highlighting discrepancies and calculating confidence scores. The AI engine is strictly barred from certifying genuineness or authorizing financial release.
 4. **Separation of Duties (SoD)**: The institution user who submits an FDR cannot audit or verify it. The scrutiny officer who verifies the FDR cannot approve a financial release or deposit refund.
 5. **Append-Only Immutability**: All sensitive events are recorded in `audit_events`. PostgreSQL RLS policies explicitly forbid `UPDATE` and `DELETE` queries on the audit table.
+

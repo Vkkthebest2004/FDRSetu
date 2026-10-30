@@ -133,3 +133,4 @@ npm run test:frontend
 # 5. Verify Next.js production build
 npm run build
 ```
+

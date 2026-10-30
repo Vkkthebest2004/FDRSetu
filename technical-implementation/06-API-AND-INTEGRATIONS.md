@@ -153,3 +153,4 @@ The `FDRService` class encapsulates all business workflows. It features a **hybr
 | `updateReleaseRequest(data)` | `Promise<ReleaseRequest>` | `approving_authority` | Grants final disbursement order (Four-Eyes rule) |
 | `recordAuditEvent(event)` | `Promise<void>` | Internal | Writes immutable security audit entry |
 | `getKPIStats()` | `Promise<KPIStats>` | Authenticated | Aggregates portfolio totals, alerts, and pending cases |
+

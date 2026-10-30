@@ -173,3 +173,4 @@ Each log entry records:
 - `entity_id`: UUID of the modified record.
 - `metadata`: Complete JSON snapshot of values before and after the transition.
 - `ip_address` & `user_agent`: Network origin identifiers.
+
