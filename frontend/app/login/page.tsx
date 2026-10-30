@@ -3,7 +3,7 @@
 import React, { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Shield, Lock, Mail, ArrowRight, UserCheck, CheckCircle2, AlertCircle, KeyRound } from 'lucide-react';
-import { useAuth } from '@/lib/auth/AuthContext';
+import { useAuth, AuthProvider } from '@/lib/auth/AuthContext';
 import { SystemRole } from '@/lib/types/database';
 
 function LoginFormContent() {
@@ -268,8 +268,10 @@ function LoginFormContent() {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-slate-100 flex items-center justify-center text-xs text-slate-500">Loading Portal Login...</div>}>
-      <LoginFormContent />
-    </Suspense>
+    <AuthProvider>
+      <Suspense fallback={<div className="min-h-screen bg-slate-100 flex items-center justify-center text-xs text-slate-500">Loading Portal Login...</div>}>
+        <LoginFormContent />
+      </Suspense>
+    </AuthProvider>
   );
 }

@@ -75,3 +75,4 @@ export async function resetPasswordAction(email: string) {
   } catch {}
   return { success: true, message: 'If an active account exists, password recovery instructions have been sent.' };
 }
+

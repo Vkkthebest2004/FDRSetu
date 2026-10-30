@@ -9,7 +9,8 @@
     "dev:ai": "cd ai-service && ./venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload",
     "build": "cd frontend && pnpm run build",
     "test:ai": "cd ai-service && PYTHONPATH=. ./venv/bin/pytest -v tests/",
-    "test": "npm run test:ai && npm run build"
+    "test:frontend": "cd frontend && npx tsx tests/auth.test.ts",
+    "test": "npm run test:ai && npm run test:frontend && npm run build"
   },
   "devDependencies": {
     "concurrently": "^9.1.2"

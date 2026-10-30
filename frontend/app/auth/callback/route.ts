@@ -17,3 +17,4 @@ export async function GET(request: NextRequest) {
   // Return to login with error indicator if exchange fails
   return NextResponse.redirect(`${origin}/login?error=auth_exchange_failed`);
 }
+
