@@ -10,7 +10,8 @@
     "build": "cd frontend && pnpm run build",
     "test:ai": "cd ai-service && PYTHONPATH=. ./venv/bin/pytest -v tests/",
     "test:frontend": "cd frontend && npx tsx tests/auth.test.ts",
-    "test": "npm run test:ai && npm run test:frontend && npm run build"
+    "test:supabase": "cd frontend && npx tsx tests/supabase.test.ts",
+    "test": "npm run test:ai && npm run test:frontend && npm run test:supabase && npm run build"
   },
   "devDependencies": {
     "concurrently": "^9.1.2"
