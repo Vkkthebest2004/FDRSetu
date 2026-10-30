@@ -43,6 +43,9 @@ function LoginFormContent() {
   const [isLoading, setIsLoading] = useState(false);
   const [activePersonaEmail, setActivePersonaEmail] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [authLoadingStep, setAuthLoadingStep] = useState<
+    'IDLE' | 'ENCRYPTING' | 'VALIDATING_RLS' | 'FINALIZING'
+  >('IDLE');
 
   // Security Verification Code (Captcha)
   const [captchaCode, setCaptchaCode] = useState('7B9K');
@@ -148,13 +151,21 @@ function LoginFormContent() {
     setErrorMessage(null);
     setEmail(persona.email);
     setPassword('Password@123');
+    setAuthLoadingStep('ENCRYPTING');
+
     try {
+      await new Promise(r => setTimeout(r, 220));
+      setAuthLoadingStep('VALIDATING_RLS');
       await switchRole(persona.role);
+      await new Promise(r => setTimeout(r, 260));
+      setAuthLoadingStep('FINALIZING');
+      await new Promise(r => setTimeout(r, 180));
       router.push(next);
     } catch (err: any) {
       setErrorMessage(err?.message || 'Quick login failed');
       setIsLoading(false);
       setActivePersonaEmail(null);
+      setAuthLoadingStep('IDLE');
     }
   }
 
@@ -174,11 +185,25 @@ function LoginFormContent() {
 
     setIsLoading(true);
     setErrorMessage(null);
+    setAuthLoadingStep('ENCRYPTING');
 
-    const res = await signIn(email, password);
-    if (!res.success) {
-      setErrorMessage(res.error || 'Authentication rejected. Please verify your credentials or select an evaluation profile.');
+    try {
+      await new Promise(r => setTimeout(r, 220));
+      setAuthLoadingStep('VALIDATING_RLS');
+      const res = await signIn(email, password);
+      if (!res.success) {
+        setErrorMessage(res.error || 'Authentication rejected. Please verify your credentials or select an evaluation profile.');
+        setIsLoading(false);
+        setAuthLoadingStep('IDLE');
+        return;
+      }
+      setAuthLoadingStep('FINALIZING');
+      await new Promise(r => setTimeout(r, 180));
+      router.push(next);
+    } catch (err: any) {
+      setErrorMessage(err?.message || 'Authentication failed');
       setIsLoading(false);
+      setAuthLoadingStep('IDLE');
     }
   }
 
@@ -627,6 +652,53 @@ function LoginFormContent() {
                 </div>
               </form>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* 4. FULL-SCREEN ANIMATED AUTHENTICATION LOADING OVERLAY */}
+      {authLoadingStep !== 'IDLE' && (
+        <div className="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-md flex flex-col items-center justify-center p-4 text-white animate-scale-in">
+          <div className="relative flex items-center justify-center mb-8">
+            {/* Outer Orbiting Ring */}
+            <div className="w-28 h-28 rounded-full border-2 border-dashed border-amber-400/50 animate-spin-slow" />
+            {/* Counter Orbiting Ring */}
+            <div className="absolute w-20 h-20 rounded-full border-2 border-dotted border-blue-400/70 animate-spin-reverse" />
+            {/* Central Seal */}
+            <div className="absolute w-14 h-14 rounded-2xl bg-[#0f294a] border border-amber-400/70 flex items-center justify-center text-amber-400 shadow-2xl">
+              <Shield className="w-8 h-8 animate-pulse" />
+            </div>
+          </div>
+
+          <div className="text-center max-w-sm w-full space-y-3">
+            <div className="text-xs font-mono font-bold uppercase tracking-widest text-amber-400">
+              {authLoadingStep === 'ENCRYPTING' && 'Phase 1 of 3: TLS 1.3 Handshake'}
+              {authLoadingStep === 'VALIDATING_RLS' && 'Phase 2 of 3: PostgreSQL RLS Verification'}
+              {authLoadingStep === 'FINALIZING' && 'Phase 3 of 3: Session Token Authorization'}
+            </div>
+
+            <h3 className="text-lg font-bold text-white tracking-tight">
+              {authLoadingStep === 'ENCRYPTING' && 'Encrypting Institutional Credentials...'}
+              {authLoadingStep === 'VALIDATING_RLS' && 'Verifying Row Level Security Claims...'}
+              {authLoadingStep === 'FINALIZING' && 'Redirecting to AICTE FDR Portal...'}
+            </h3>
+
+            {/* Dynamic Animated Progress Bar */}
+            <div className="w-full bg-slate-800 rounded-full h-2 overflow-hidden relative mt-2 border border-slate-700">
+              <div
+                className={`h-full rounded-full transition-all duration-300 ${
+                  authLoadingStep === 'ENCRYPTING'
+                    ? 'w-1/3 bg-amber-400'
+                    : authLoadingStep === 'VALIDATING_RLS'
+                    ? 'w-2/3 bg-blue-400'
+                    : 'w-full bg-emerald-400'
+                }`}
+              />
+            </div>
+
+            <p className="text-xs text-slate-400 font-mono pt-1">
+              {email || 'Institutional Session Token'}
+            </p>
           </div>
         </div>
       )}

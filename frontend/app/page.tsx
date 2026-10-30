@@ -28,15 +28,68 @@ import {
   Landmark,
   Phone,
   Mail,
-  MapPin
+  MapPin,
+  Calculator,
+  Calendar,
+  Check,
+  TrendingUp,
+  Server
 } from 'lucide-react';
 
 export default function LandingPage() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [activeWorkflowTab, setActiveWorkflowTab] = useState<number>(0);
+
+  // Deposit Calculator State
+  const [selectedProgram, setSelectedProgram] = useState<'eng' | 'mgmt' | 'poly' | 'pharm' | 'arch'>('eng');
+  const [selectedCategory, setSelectedCategory] = useState<'new_inst' | 'new_prog' | 'expansion'>('new_inst');
 
   const toggleFaq = (index: number) => {
     setOpenFaq(openFaq === index ? null : index);
   };
+
+  // Calculator lookup tables per APH regulations
+  const programDetails = {
+    eng: {
+      name: 'Engineering & Technology (UG/PG)',
+      baseAmount: 3500000,
+      tenorYears: 10,
+      code: 'ENG-TECH',
+      aphClause: 'APH 2024-27 Clause 4.1.1(a)',
+    },
+    mgmt: {
+      name: 'Management Studies (MBA / PGDM)',
+      baseAmount: 2500000,
+      tenorYears: 10,
+      code: 'MGMT-PG',
+      aphClause: 'APH 2024-27 Clause 4.1.1(b)',
+    },
+    poly: {
+      name: 'Polytechnic & Diploma Engineering',
+      baseAmount: 1500000,
+      tenorYears: 8,
+      code: 'POLY-DIP',
+      aphClause: 'APH 2024-27 Clause 4.1.2',
+    },
+    pharm: {
+      name: 'Pharmacy (B.Pharm / M.Pharm)',
+      baseAmount: 2500000,
+      tenorYears: 10,
+      code: 'PHARM-UG',
+      aphClause: 'APH 2024-27 Clause 4.1.1(c)',
+    },
+    arch: {
+      name: 'Architecture & Applied Arts (B.Arch)',
+      baseAmount: 2000000,
+      tenorYears: 10,
+      code: 'ARCH-PLAN',
+      aphClause: 'APH 2024-27 Clause 4.1.1(d)',
+    },
+  };
+
+  const currentProg = programDetails[selectedProgram];
+  const multiplier = selectedCategory === 'new_inst' ? 1 : selectedCategory === 'new_prog' ? 0.6 : 0.4;
+  const calculatedDeposit = currentProg.baseAmount * multiplier;
 
   const faqs = [
     {
@@ -61,10 +114,75 @@ export default function LandingPage() {
     }
   ];
 
+  const workflowStages = [
+    {
+      id: 0,
+      badge: 'Step 01',
+      title: 'Institutional Lodgment',
+      summary: 'Authorized registrar uploads FDR certificate & bank confirmation letter',
+      description: 'The institution logs into the portal and registers the Fixed Deposit Receipt issued by a Scheduled Commercial Bank. The submission captures bank branch IFSC, deposit amount, deposit date, and maturity date, ensuring joint lien endorsement to the Regional Officer, AICTE.',
+      techStack: 'Supabase Storage · Private Encrypted Buckets · SHA-256 Checksums',
+      sampleCode: `{
+  "fdr_number": "SBI-DEL-2024-8841",
+  "bank_name": "State Bank of India",
+  "branch_ifsc": "SBIN0001234",
+  "principal_amount": "₹ 35,00,000.00",
+  "joint_lien_status": "ENDORSED_AICTE",
+  "submission_status": "SUBMITTED"
+}`
+    },
+    {
+      id: 1,
+      badge: 'Step 02',
+      title: 'AI OCR & Anomaly Extraction',
+      summary: 'FastAPI microservice parses scanned certificate and flags discrepancies',
+      description: 'The uploaded PDF or image is routed to the Python AI service. Using OpenCV Otsu thresholding and Tesseract OCR, the system parses the document, cross-checks extracted amounts and maturity dates against submitted form values, and scores matching confidence.',
+      techStack: 'Python 3.12 · FastAPI · OpenCV · Tesseract OCR · PyMuPDF',
+      sampleCode: `{
+  "extraction_model": "tesseract_v5.5_ocr",
+  "confidence_score": 0.96,
+  "extracted_amount": 3500000.00,
+  "discrepancies_found": 0,
+  "joint_holder_verified": true,
+  "anomaly_flag": "NONE"
+}`
+    },
+    {
+      id: 2,
+      badge: 'Step 03',
+      title: 'Regional Scrutiny Audit',
+      summary: 'AICTE Scrutiny Officer audits evidence against issuing bank records',
+      description: 'The assigned Scrutiny Officer inspects the verification workbench. The officer compares the institution submission, AI OCR extraction overlay, and physical bank confirmation letter, recording a binding audit recommendation (Accept, Return for Correction, or Reject).',
+      techStack: 'PostgreSQL RLS · Scrutiny Workbench · Tamper-Resistant Auditing',
+      sampleCode: `{
+  "case_id": "vc-delhi-fdr-8841",
+  "scrutiny_officer": "Sunil Kumar (RO North)",
+  "bank_letter_ref": "SBI/AICTE/CONF/2024/99",
+  "scrutiny_decision": "ACCEPT",
+  "observations": "Original FDR verified with bank branch manager."
+}`
+    },
+    {
+      id: 3,
+      badge: 'Step 04',
+      title: 'Maturity Alarms & Release Sign-Off',
+      summary: 'Automated 90-day renewal tracking & executive financial approval',
+      description: 'Automated daily cron jobs monitor maturity dates and issue escalation alerts at 90, 60, and 30 days. When an institution applies for release upon completion or closure, the Regional Director exercises statutory financial sign-off with strict 2-person separation of duties.',
+      techStack: 'Maturity Cron Monitor · Approving Authority Sign-Off · 2-Person Rule',
+      sampleCode: `{
+  "release_request_id": "rel-2026-1029",
+  "approval_authority": "Dr. V. K. Adiseshiah (Regional Director)",
+  "financial_clearance": "APPROVED",
+  "student_grievances": "NONE_PENDING",
+  "status": "RELEASE_RECORDED"
+}`
+    }
+  ];
+
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900 font-sans">
-      {/* 1. NATIONAL TRICOLOR TOP STRIP */}
-      <div className="h-1.5 w-full bg-linear-to-r from-[#FF9933] via-white to-[#138808]" />
+    <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900 font-sans selection:bg-blue-600 selection:text-white">
+      {/* 1. NATIONAL TRICOLOR TOP STRIP WITH SHIMMER ANIMATION */}
+      <div className="h-1.5 w-full bg-linear-to-r from-[#FF9933] via-white to-[#138808] shimmer-bar" />
 
       {/* 2. GOVERNMENT OF INDIA & AICTE OFFICIAL TOP BAR */}
       <div className="bg-[#0b1e38] text-slate-200 text-xs py-2 px-4 border-b border-[#1b3d6b]">
@@ -77,15 +195,20 @@ export default function LandingPage() {
           <div className="flex items-center gap-4 text-slate-300">
             <a href="#guidelines" className="hover:text-amber-300 transition-colors">APH 2024-27 Guidelines</a>
             <span className="text-slate-500">·</span>
+            <a href="#calculator" className="hover:text-amber-300 transition-colors">Deposit Calculator</a>
+            <span className="text-slate-500">·</span>
             <a href="#faq" className="hover:text-amber-300 transition-colors">Helpdesk & FAQs</a>
             <span className="text-slate-500">·</span>
-            <span className="text-emerald-400 font-mono text-[11px]">System Status: Operational</span>
+            <span className="inline-flex items-center gap-1.5 text-emerald-400 font-mono text-[11px]">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              <span>System Operational</span>
+            </span>
           </div>
         </div>
       </div>
 
       {/* 3. MAIN PORTAL NAVIGATION HEADER */}
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-xs">
+      <header className="bg-white/95 backdrop-blur-md border-b border-slate-200 sticky top-0 z-50 shadow-xs transition-all">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between">
           {/* Logo & Council Branding */}
           <Link href="/" className="flex items-center gap-3.5 group">
@@ -114,93 +237,138 @@ export default function LandingPage() {
           <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-slate-700">
             <a href="#overview" className="hover:text-blue-700 transition-colors">Overview</a>
             <a href="#workflow" className="hover:text-blue-700 transition-colors">Workflow</a>
+            <a href="#calculator" className="hover:text-blue-700 transition-colors">Deposit Calculator</a>
             <a href="#ai-ocr" className="hover:text-blue-700 transition-colors">AI & OCR</a>
-            <a href="#roles" className="hover:text-blue-700 transition-colors">Roles</a>
-            <a href="#guidelines" className="hover:text-blue-700 transition-colors">Mandates</a>
+            <a href="#roles" className="hover:text-blue-700 transition-colors">Portals</a>
             <a href="#faq" className="hover:text-blue-700 transition-colors">FAQ</a>
           </nav>
 
           <div className="flex items-center gap-3">
             <Link
               href="/login"
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-[#0f294a] hover:bg-[#153a66] text-white text-sm font-semibold shadow-sm transition-all hover:shadow-md"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#0f294a] hover:bg-[#153a66] text-white text-sm font-semibold shadow-sm transition-all hover:shadow-md hover:scale-[1.02] active:scale-[0.99] group"
             >
               <span>Portal Sign In</span>
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </Link>
           </div>
         </div>
       </header>
 
-      {/* 4. HERO SECTION */}
+      {/* 4. HERO SECTION WITH ANIMATED ACCENTS */}
       <section id="overview" className="relative bg-linear-to-b from-slate-100 via-white to-slate-50 py-16 sm:py-24 border-b border-slate-200 overflow-hidden">
         {/* Subtle decorative background watermark */}
         <div className="absolute inset-0 pointer-events-none opacity-[0.03] flex items-center justify-center">
-          <Shield className="w-[800px] h-[800px] text-slate-900" />
+          <Shield className="w-[850px] h-[850px] text-slate-900" />
         </div>
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-3xl">
-            {/* Regulatory Badge */}
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-50 border border-blue-200 text-blue-900 text-xs font-semibold mb-6 shadow-2xs">
-              <ShieldCheck className="w-4 h-4 text-blue-700 shrink-0" />
-              <span>STATUTORY COMPLIANCE SYSTEM · APH 2024-27 REGULATIONS</span>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+            
+            <div className="lg:col-span-7">
+              {/* Regulatory Badge */}
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-50 border border-blue-200 text-blue-900 text-xs font-semibold mb-6 shadow-2xs">
+                <ShieldCheck className="w-4 h-4 text-blue-700 shrink-0" />
+                <span>STATUTORY COMPLIANCE SYSTEM · APH 2024-27 REGULATIONS</span>
+              </div>
+
+              {/* Main Headline */}
+              <h2 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-slate-900 leading-[1.15]">
+                Digital Governance & Verification for Technical Institutions&apos; Security Deposits
+              </h2>
+
+              {/* Sub-paragraph */}
+              <p className="mt-6 text-base sm:text-lg text-slate-600 leading-relaxed font-normal">
+                The official centralized platform for the All India Council for Technical Education (AICTE) to monitor, 
+                verify, and manage joint-lien Fixed Deposit Receipts (FDRs). Combining automated AI/OCR document 
+                extraction, multi-tier regulatory scrutiny, maturity tracking, and immutable audit trails.
+              </p>
+
+              {/* Primary Action Buttons */}
+              <div className="mt-8 flex flex-wrap items-center gap-4">
+                <Link
+                  href="/login"
+                  className="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-xl bg-[#0f294a] hover:bg-[#1a4478] text-white text-base font-semibold shadow-md transition-all hover:scale-[1.01] group"
+                >
+                  <span>Institutional Portal Sign In</span>
+                  <ArrowRight className="w-5 h-5 text-amber-400 group-hover:translate-x-1 transition-transform" />
+                </Link>
+                <a
+                  href="#calculator"
+                  className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-white border border-slate-300 hover:bg-slate-50 text-slate-800 text-base font-semibold shadow-xs transition-all"
+                >
+                  <Calculator className="w-5 h-5 text-slate-600" />
+                  <span>Deposit Calculator</span>
+                </a>
+              </div>
+
+              {/* Trust and Compliance Markers */}
+              <div className="mt-8 pt-6 border-t border-slate-200/80 flex flex-wrap items-center gap-6 text-xs text-slate-600">
+                <div className="flex items-center gap-1.5">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span>PostgreSQL Row Level Security (RLS)</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span>AI-Assisted Field Discrepancy Checks</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span>Append-Only Immutability</span>
+                </div>
+              </div>
             </div>
 
-            {/* Main Headline */}
-            <h2 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-slate-900 leading-[1.15]">
-              Digital Governance & Verification for Technical Institutions&apos; Security Deposits
-            </h2>
+            {/* Right Hero Showcase Badge with Orbital Animation */}
+            <div className="lg:col-span-5 flex justify-center">
+              <div className="relative p-8 rounded-3xl bg-[#0f294a] text-white shadow-2xl border border-[#1b3d6b] max-w-sm w-full text-center overflow-hidden">
+                <div className="absolute top-0 left-0 right-0 h-1 bg-linear-to-r from-amber-400 via-blue-400 to-emerald-400 shimmer-bar" />
 
-            {/* Sub-paragraph */}
-            <p className="mt-6 text-base sm:text-lg text-slate-600 leading-relaxed font-normal">
-              The official centralized platform for the All India Council for Technical Education (AICTE) to monitor, 
-              verify, and manage joint-lien Fixed Deposit Receipts (FDRs). Combining automated AI/OCR document 
-              extraction, multi-tier regulatory scrutiny, maturity tracking, and immutable audit trails.
-            </p>
+                {/* Animated Concentric Rings Emblem */}
+                <div className="relative mx-auto w-32 h-32 flex items-center justify-center my-4">
+                  <div className="absolute inset-0 rounded-full border-2 border-dashed border-amber-400/40 animate-spin-slow" />
+                  <div className="absolute w-24 h-24 rounded-full border border-dotted border-blue-400/60 animate-spin-reverse" />
+                  <div className="w-16 h-16 rounded-2xl bg-slate-900 border border-amber-400/60 flex items-center justify-center text-amber-400 shadow-xl">
+                    <Shield className="w-9 h-9" />
+                  </div>
+                </div>
 
-            {/* Primary Action Buttons */}
-            <div className="mt-8 flex flex-wrap items-center gap-4">
-              <Link
-                href="/login"
-                className="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-xl bg-[#0f294a] hover:bg-[#1a4478] text-white text-base font-semibold shadow-md transition-all hover:scale-[1.01]"
-              >
-                <span>Institutional Portal Login</span>
-                <ArrowRight className="w-5 h-5 text-amber-400" />
-              </Link>
-              <a
-                href="#workflow"
-                className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-white border border-slate-300 hover:bg-slate-50 text-slate-800 text-base font-semibold shadow-xs transition-all"
-              >
-                <BookOpen className="w-5 h-5 text-slate-600" />
-                <span>Verification SOP & Workflow</span>
-              </a>
-            </div>
+                <div className="text-xs font-mono font-bold uppercase tracking-widest text-amber-400 mb-1">
+                  National Security Vault
+                </div>
+                <div className="text-lg font-bold text-white mb-2">
+                  Joint Lien Protection
+                </div>
+                <p className="text-xs text-slate-300 leading-relaxed mb-6">
+                  Mandatory dual-lien endorsement ensuring zero unauthorized encashment prior to Council sign-off.
+                </p>
 
-            {/* Trust and Compliance Markers */}
-            <div className="mt-8 pt-6 border-t border-slate-200/80 flex flex-wrap items-center gap-6 text-xs text-slate-600">
-              <div className="flex items-center gap-1.5">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                <span>PostgreSQL Row Level Security (RLS)</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                <span>AI-Assisted Field Discrepancy Checks</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                <span>Immutable Append-Only Audit Logging</span>
+                <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-700/80 text-left text-xs space-y-2">
+                  <div className="flex items-center justify-between text-[11px]">
+                    <span className="text-slate-400">Lock-in Tenor:</span>
+                    <span className="text-emerald-400 font-bold font-mono">8 to 10 Years</span>
+                  </div>
+                  <div className="flex items-center justify-between text-[11px]">
+                    <span className="text-slate-400">Bank Scope:</span>
+                    <span className="text-amber-300 font-bold font-mono">RBI Scheduled Banks</span>
+                  </div>
+                  <div className="flex items-center justify-between text-[11px]">
+                    <span className="text-slate-400">Lien Holder:</span>
+                    <span className="text-white font-bold font-mono">AICTE New Delhi</span>
+                  </div>
+                </div>
               </div>
             </div>
+
           </div>
         </div>
       </section>
 
-      {/* 5. STATS & KEY METRICS STRIP */}
+      {/* 5. STATS STRIP */}
       <section className="bg-[#0f294a] text-white py-10 border-y border-[#1b3d6b]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
-            <div className="p-4 rounded-xl bg-[#163863] border border-[#23508a]">
+            <div className="p-4 rounded-xl bg-[#163863] border border-[#23508a] transition-all hover:-translate-y-0.5">
               <div className="flex items-center justify-between text-amber-400 mb-2">
                 <Landmark className="w-6 h-6" />
                 <span className="text-xs font-mono uppercase bg-amber-400/10 px-2 py-0.5 rounded text-amber-300">Mandate</span>
@@ -209,7 +377,7 @@ export default function LandingPage() {
               <div className="text-xs text-slate-300 mt-1">Jointly in the name of AICTE & Society/Trust</div>
             </div>
 
-            <div className="p-4 rounded-xl bg-[#163863] border border-[#23508a]">
+            <div className="p-4 rounded-xl bg-[#163863] border border-[#23508a] transition-all hover:-translate-y-0.5">
               <div className="flex items-center justify-between text-emerald-400 mb-2">
                 <Sparkles className="w-6 h-6" />
                 <span className="text-xs font-mono uppercase bg-emerald-400/10 px-2 py-0.5 rounded text-emerald-300">AI Powered</span>
@@ -218,7 +386,7 @@ export default function LandingPage() {
               <div className="text-xs text-slate-300 mt-1">IFSC, FDR Number, Dates & Amount Cross-Match</div>
             </div>
 
-            <div className="p-4 rounded-xl bg-[#163863] border border-[#23508a]">
+            <div className="p-4 rounded-xl bg-[#163863] border border-[#23508a] transition-all hover:-translate-y-0.5">
               <div className="flex items-center justify-between text-blue-400 mb-2">
                 <Users className="w-6 h-6" />
                 <span className="text-xs font-mono uppercase bg-blue-400/10 px-2 py-0.5 rounded text-blue-300">Separation</span>
@@ -227,7 +395,7 @@ export default function LandingPage() {
               <div className="text-xs text-slate-300 mt-1">Institutions, Scrutiny, Approvers & Admins</div>
             </div>
 
-            <div className="p-4 rounded-xl bg-[#163863] border border-[#23508a]">
+            <div className="p-4 rounded-xl bg-[#163863] border border-[#23508a] transition-all hover:-translate-y-0.5">
               <div className="flex items-center justify-between text-purple-400 mb-2">
                 <Clock className="w-6 h-6" />
                 <span className="text-xs font-mono uppercase bg-purple-400/10 px-2 py-0.5 rounded text-purple-300">Proactive</span>
@@ -249,99 +417,203 @@ export default function LandingPage() {
         </div>
       </div>
 
-      {/* 7. THE 4-STAGE LIFECYCLE WORKFLOW */}
+      {/* 7. INTERACTIVE 4-STAGE LIFECYCLE WORKFLOW STEPPER */}
       <section id="workflow" className="py-20 bg-white border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-3xl mx-auto mb-16">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-semibold uppercase tracking-wider mb-3">
+          <div className="text-center max-w-3xl mx-auto mb-14">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-blue-800 text-xs font-semibold uppercase tracking-wider mb-3">
               Standard Operating Procedure
             </div>
             <h3 className="text-3xl font-extrabold text-slate-900 tracking-tight">
-              The FDR Verification & Governance Lifecycle
+              Interactive FDR Verification & Governance Lifecycle
             </h3>
             <p className="mt-3 text-base text-slate-600">
-              A transparent, auditable 4-stage pipeline ensuring complete regulatory oversight from instrument creation to maturity or release.
+              Select any stage below to inspect the real-time operational payload, verification checks, and audit standards:
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {/* Step 1 */}
-            <div className="relative p-6 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col justify-between hover:shadow-md transition-shadow">
-              <div>
-                <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-700 font-bold flex items-center justify-center text-sm mb-4">
-                  01
-                </div>
-                <h4 className="text-base font-bold text-slate-900 mb-2">
-                  Institutional Lodgment
-                </h4>
-                <p className="text-xs text-slate-600 leading-relaxed">
-                  Authorized institution registrars upload the digital bank FDR receipt, issuing branch IFSC, principal sum, maturity date, and bank verification certificate.
-                </p>
-              </div>
-              <div className="mt-6 pt-4 border-t border-slate-200 text-[11px] font-medium text-blue-700 flex items-center gap-1">
-                <span>Direct PDF / Certificate Upload</span>
-              </div>
-            </div>
+          {/* Interactive Stepper Navigation Bar */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+            {workflowStages.map((stage) => {
+              const isActive = activeWorkflowTab === stage.id;
+              return (
+                <button
+                  key={stage.id}
+                  type="button"
+                  onClick={() => setActiveWorkflowTab(stage.id)}
+                  className={`p-4 rounded-2xl text-left border transition-all duration-200 cursor-pointer ${
+                    isActive
+                      ? 'bg-[#0f294a] text-white border-[#0f294a] shadow-md scale-100'
+                      : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100 hover:border-slate-300'
+                  }`}
+                >
+                  <div className={`text-xs font-mono font-bold uppercase tracking-wider mb-1 ${
+                    isActive ? 'text-amber-400' : 'text-slate-500'
+                  }`}>
+                    {stage.badge}
+                  </div>
+                  <div className="font-bold text-sm leading-tight">{stage.title}</div>
+                </button>
+              );
+            })}
+          </div>
 
-            {/* Step 2 */}
-            <div className="relative p-6 rounded-2xl bg-emerald-50/50 border border-emerald-200 flex flex-col justify-between hover:shadow-md transition-shadow">
-              <div>
-                <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-800 font-bold flex items-center justify-center text-sm mb-4">
-                  02
+          {/* Active Stage Details Showcase Card */}
+          <div className="bg-slate-900 text-white rounded-3xl p-6 sm:p-8 border border-slate-800 shadow-xl animate-fade-in-up">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+              <div className="lg:col-span-7 space-y-4">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-900/60 border border-blue-700 text-blue-300 text-xs font-semibold">
+                  <span>{workflowStages[activeWorkflowTab].badge}</span>
+                  <span>·</span>
+                  <span>{workflowStages[activeWorkflowTab].title}</span>
                 </div>
-                <h4 className="text-base font-bold text-slate-900 mb-2">
-                  AI OCR & Field Extraction
+                <h4 className="text-xl sm:text-2xl font-bold text-white">
+                  {workflowStages[activeWorkflowTab].summary}
                 </h4>
-                <p className="text-xs text-slate-600 leading-relaxed">
-                  Automated document processing parses digital text and OCR scans, extracting the FDR certificate number, bank branch, and joint-lien clauses, flagging any mismatches.
+                <p className="text-sm text-slate-300 leading-relaxed font-normal">
+                  {workflowStages[activeWorkflowTab].description}
                 </p>
+                <div className="pt-3 border-t border-slate-800 flex items-center gap-2 text-xs text-amber-400 font-mono">
+                  <Server className="w-4 h-4 shrink-0" />
+                  <span>Enforcement Architecture: {workflowStages[activeWorkflowTab].techStack}</span>
+                </div>
               </div>
-              <div className="mt-6 pt-4 border-t border-emerald-200 text-[11px] font-medium text-emerald-800 flex items-center gap-1">
-                <span>FastAPI + Tesseract + PyMuPDF</span>
-              </div>
-            </div>
 
-            {/* Step 3 */}
-            <div className="relative p-6 rounded-2xl bg-blue-50/50 border border-blue-200 flex flex-col justify-between hover:shadow-md transition-shadow">
-              <div>
-                <div className="w-10 h-10 rounded-xl bg-blue-200 text-blue-900 font-bold flex items-center justify-center text-sm mb-4">
-                  03
+              {/* Terminal Code Display */}
+              <div className="lg:col-span-5 bg-black/60 rounded-2xl p-4 border border-slate-800 font-mono text-xs">
+                <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-800 text-[11px] text-slate-400">
+                  <span>payload_sample.json</span>
+                  <span className="text-emerald-400">STATE_SYNCHRONIZED</span>
                 </div>
-                <h4 className="text-base font-bold text-slate-900 mb-2">
-                  Regional Scrutiny Cell
-                </h4>
-                <p className="text-xs text-slate-600 leading-relaxed">
-                  AICTE Scrutiny Officers independently audit the submission against bank confirmation records, review OCR discrepancy reports, and record verification findings.
-                </p>
-              </div>
-              <div className="mt-6 pt-4 border-t border-blue-200 text-[11px] font-medium text-blue-900 flex items-center gap-1">
-                <span>Human-in-the-Loop Oversight</span>
-              </div>
-            </div>
-
-            {/* Step 4 */}
-            <div className="relative p-6 rounded-2xl bg-purple-50/50 border border-purple-200 flex flex-col justify-between hover:shadow-md transition-shadow">
-              <div>
-                <div className="w-10 h-10 rounded-xl bg-purple-100 text-purple-800 font-bold flex items-center justify-center text-sm mb-4">
-                  04
-                </div>
-                <h4 className="text-base font-bold text-slate-900 mb-2">
-                  Maturity & Release Sign-Off
-                </h4>
-                <p className="text-xs text-slate-600 leading-relaxed">
-                  Automated 90-day alarms trigger renewal requirements. Permanent deposit release requires Regional Director executive approval with strict separation of duties.
-                </p>
-              </div>
-              <div className="mt-6 pt-4 border-t border-purple-200 text-[11px] font-medium text-purple-800 flex items-center gap-1">
-                <span>Executive Financial Authority</span>
+                <pre className="text-slate-300 leading-relaxed overflow-x-auto text-[11px]">
+                  {workflowStages[activeWorkflowTab].sampleCode}
+                </pre>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* 8. AI & OCR INTELLIGENCE SECTION */}
-      <section id="ai-ocr" className="py-20 bg-slate-100 border-b border-slate-200">
+      {/* 8. INTERACTIVE STATUTORY DEPOSIT & TENOR CALCULATOR */}
+      <section id="calculator" className="py-20 bg-slate-100 border-b border-slate-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-3xl mx-auto mb-14">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-100 text-emerald-900 text-xs font-bold uppercase tracking-wider mb-3">
+              <Calculator className="w-3.5 h-3.5 text-emerald-700" />
+              <span>APH 2024-27 Regulatory Tool</span>
+            </div>
+            <h3 className="text-3xl font-extrabold text-slate-900 tracking-tight">
+              Interactive Security Deposit & Tenor Calculator
+            </h3>
+            <p className="mt-3 text-base text-slate-600">
+              Calculate statutory fixed deposit amounts and mandatory lock-in duration based on program type and approval category:
+            </p>
+          </div>
+
+          <div className="max-w-4xl mx-auto bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-sm">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+              
+              {/* Controls */}
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
+                    Program / Discipline Category:
+                  </label>
+                  <select
+                    value={selectedProgram}
+                    onChange={(e) => setSelectedProgram(e.target.value as any)}
+                    className="w-full px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-300 text-xs font-medium text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-[#0f294a]"
+                  >
+                    <option value="eng">Engineering & Technology (UG/PG)</option>
+                    <option value="mgmt">Management Studies (MBA / PGDM)</option>
+                    <option value="poly">Polytechnic / Diploma Engineering</option>
+                    <option value="pharm">Pharmacy (B.Pharm / M.Pharm)</option>
+                    <option value="arch">Architecture & Applied Arts (B.Arch)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
+                    Approval Scope / Application Tier:
+                  </label>
+                  <div className="grid grid-cols-3 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedCategory('new_inst')}
+                      className={`p-2.5 rounded-xl text-xs font-bold border transition-colors cursor-pointer ${
+                        selectedCategory === 'new_inst'
+                          ? 'bg-[#0f294a] text-white border-[#0f294a]'
+                          : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                      }`}
+                    >
+                      New Institute
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedCategory('new_prog')}
+                      className={`p-2.5 rounded-xl text-xs font-bold border transition-colors cursor-pointer ${
+                        selectedCategory === 'new_prog'
+                          ? 'bg-[#0f294a] text-white border-[#0f294a]'
+                          : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                      }`}
+                    >
+                      New Program
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedCategory('expansion')}
+                      className={`p-2.5 rounded-xl text-xs font-bold border transition-colors cursor-pointer ${
+                        selectedCategory === 'expansion'
+                          ? 'bg-[#0f294a] text-white border-[#0f294a]'
+                          : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                      }`}
+                    >
+                      Expansion
+                    </button>
+                  </div>
+                </div>
+
+                <div className="text-xs text-slate-500 bg-slate-50 p-3 rounded-xl border border-slate-200">
+                  <span className="font-semibold text-slate-700">Regulatory Reference:</span> {currentProg.aphClause}
+                </div>
+              </div>
+
+              {/* Calculated Result Card */}
+              <div className="p-6 rounded-2xl bg-[#0f294a] text-white shadow-lg space-y-4">
+                <div className="text-xs font-mono uppercase tracking-wider text-amber-400">
+                  Mandatory Instrument Requirements
+                </div>
+
+                <div>
+                  <div className="text-xs text-slate-300">Statutory FDR Principal Sum:</div>
+                  <div className="text-3xl font-extrabold text-white mt-1">
+                    ₹ {calculatedDeposit.toLocaleString('en-IN')}.00
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3 pt-3 border-t border-slate-700 text-xs">
+                  <div>
+                    <div className="text-slate-400">Mandated Lock-in:</div>
+                    <div className="text-emerald-400 font-bold font-mono text-sm">{currentProg.tenorYears} Years Lock-in</div>
+                  </div>
+                  <div>
+                    <div className="text-slate-400">Proactive Alerts:</div>
+                    <div className="text-amber-300 font-bold font-mono text-sm">90, 60, 30 Days</div>
+                  </div>
+                </div>
+
+                <div className="pt-2 text-[11px] text-slate-300">
+                  Endorsement: Must be drawn jointly in name of Regional Officer, AICTE and Society/Trust.
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 9. AI & OCR INTELLIGENCE SECTION */}
+      <section id="ai-ocr" className="py-20 bg-white border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div>
@@ -359,7 +631,7 @@ export default function LandingPage() {
               </p>
 
               <div className="mt-6 space-y-3.5">
-                <div className="flex items-start gap-3 p-3 rounded-xl bg-white border border-slate-200 shadow-2xs">
+                <div className="flex items-start gap-3 p-3 rounded-xl bg-slate-50 border border-slate-200">
                   <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
                   <div>
                     <h5 className="text-xs font-bold text-slate-900">IFSC & Scheduled Bank Verification</h5>
@@ -367,7 +639,7 @@ export default function LandingPage() {
                   </div>
                 </div>
 
-                <div className="flex items-start gap-3 p-3 rounded-xl bg-white border border-slate-200 shadow-2xs">
+                <div className="flex items-start gap-3 p-3 rounded-xl bg-slate-50 border border-slate-200">
                   <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
                   <div>
                     <h5 className="text-xs font-bold text-slate-900">Joint Lien Endorsement Clause Check</h5>
@@ -375,18 +647,13 @@ export default function LandingPage() {
                   </div>
                 </div>
 
-                <div className="flex items-start gap-3 p-3 rounded-xl bg-white border border-slate-200 shadow-2xs">
+                <div className="flex items-start gap-3 p-3 rounded-xl bg-slate-50 border border-slate-200">
                   <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
                   <div>
                     <h5 className="text-xs font-bold text-slate-900">Tenor & Maturity Date Precision</h5>
                     <p className="text-xs text-slate-500">Cross-checks deposit duration against mandated APH approval requirements (8-10 years).</p>
                   </div>
                 </div>
-              </div>
-
-              <div className="mt-6 p-3.5 rounded-xl bg-blue-50 border border-blue-200 text-blue-950 text-xs flex items-center gap-2.5">
-                <Shield className="w-4 h-4 text-blue-700 shrink-0" />
-                <span><strong>Ethical AI Guardrail:</strong> AI outputs serve solely as decision support. No automated financial release or certification occurs without human officer validation.</span>
               </div>
             </div>
 
@@ -426,8 +693,8 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* 9. MULTI-ROLE PORTALS & ACCESS GATEWAYS */}
-      <section id="roles" className="py-20 bg-white border-b border-slate-200">
+      {/* 10. MULTI-ROLE PORTALS & ACCESS GATEWAYS */}
+      <section id="roles" className="py-20 bg-slate-50 border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto mb-16">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-blue-800 text-xs font-semibold uppercase tracking-wider mb-3">
@@ -443,7 +710,7 @@ export default function LandingPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {/* Institution User */}
-            <div className="p-6 rounded-2xl border border-emerald-200 bg-emerald-50/40 flex flex-col justify-between hover:shadow-md transition-shadow">
+            <div className="p-6 rounded-2xl border border-emerald-200 bg-white flex flex-col justify-between hover:shadow-md transition-shadow">
               <div>
                 <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center mb-4">
                   <Building2 className="w-5 h-5" />
@@ -456,7 +723,7 @@ export default function LandingPage() {
               </div>
               <Link
                 href="/login"
-                className="mt-4 inline-flex items-center justify-between px-4 py-2 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold shadow-xs transition-colors"
+                className="mt-4 inline-flex items-center justify-between px-4 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold shadow-xs transition-colors"
               >
                 <span>Institution Login</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -464,7 +731,7 @@ export default function LandingPage() {
             </div>
 
             {/* Scrutiny Officer */}
-            <div className="p-6 rounded-2xl border border-blue-200 bg-blue-50/40 flex flex-col justify-between hover:shadow-md transition-shadow">
+            <div className="p-6 rounded-2xl border border-blue-200 bg-white flex flex-col justify-between hover:shadow-md transition-shadow">
               <div>
                 <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-800 flex items-center justify-center mb-4">
                   <FileSearch className="w-5 h-5" />
@@ -477,7 +744,7 @@ export default function LandingPage() {
               </div>
               <Link
                 href="/login"
-                className="mt-4 inline-flex items-center justify-between px-4 py-2 rounded-lg bg-blue-700 hover:bg-blue-800 text-white text-xs font-semibold shadow-xs transition-colors"
+                className="mt-4 inline-flex items-center justify-between px-4 py-2.5 rounded-xl bg-blue-700 hover:bg-blue-800 text-white text-xs font-semibold shadow-xs transition-colors"
               >
                 <span>Scrutiny Cell Login</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -485,7 +752,7 @@ export default function LandingPage() {
             </div>
 
             {/* Approving Authority */}
-            <div className="p-6 rounded-2xl border border-purple-200 bg-purple-50/40 flex flex-col justify-between hover:shadow-md transition-shadow">
+            <div className="p-6 rounded-2xl border border-purple-200 bg-white flex flex-col justify-between hover:shadow-md transition-shadow">
               <div>
                 <div className="w-10 h-10 rounded-xl bg-purple-100 text-purple-800 flex items-center justify-center mb-4">
                   <Scale className="w-5 h-5" />
@@ -498,7 +765,7 @@ export default function LandingPage() {
               </div>
               <Link
                 href="/login"
-                className="mt-4 inline-flex items-center justify-between px-4 py-2 rounded-lg bg-purple-700 hover:bg-purple-800 text-white text-xs font-semibold shadow-xs transition-colors"
+                className="mt-4 inline-flex items-center justify-between px-4 py-2.5 rounded-xl bg-purple-700 hover:bg-purple-800 text-white text-xs font-semibold shadow-xs transition-colors"
               >
                 <span>Approver Login</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -506,7 +773,7 @@ export default function LandingPage() {
             </div>
 
             {/* System Administrator */}
-            <div className="p-6 rounded-2xl border border-amber-200 bg-amber-50/40 flex flex-col justify-between hover:shadow-md transition-shadow">
+            <div className="p-6 rounded-2xl border border-amber-200 bg-white flex flex-col justify-between hover:shadow-md transition-shadow">
               <div>
                 <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center mb-4">
                   <Lock className="w-5 h-5" />
@@ -519,60 +786,11 @@ export default function LandingPage() {
               </div>
               <Link
                 href="/login"
-                className="mt-4 inline-flex items-center justify-between px-4 py-2 rounded-lg bg-amber-700 hover:bg-amber-800 text-white text-xs font-semibold shadow-xs transition-colors"
+                className="mt-4 inline-flex items-center justify-between px-4 py-2.5 rounded-xl bg-amber-700 hover:bg-amber-800 text-white text-xs font-semibold shadow-xs transition-colors"
               >
                 <span>Admin Login</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </Link>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 10. STATUTORY MANDATES & APH REQUIREMENTS */}
-      <section id="guidelines" className="py-20 bg-slate-50 border-b border-slate-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-3xl mb-12">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-200 text-slate-800 text-xs font-semibold uppercase tracking-wider mb-3">
-              Regulatory Standards
-            </div>
-            <h3 className="text-3xl font-extrabold text-slate-900 tracking-tight">
-              AICTE Approval Process Handbook (APH) Mandates
-            </h3>
-            <p className="mt-3 text-base text-slate-600">
-              Key statutory provisions governing technical institution security deposits and Fixed Deposit Receipts.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="p-6 rounded-2xl bg-white border border-slate-200 shadow-2xs">
-              <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-sm mb-3">
-                §1
-              </div>
-              <h4 className="text-base font-bold text-slate-900 mb-2">Mandatory Joint Lien</h4>
-              <p className="text-xs text-slate-600 leading-relaxed">
-                The FDR must be created jointly in the name of the Regional Officer, AICTE and the applicant Society/Trust. Under no circumstance may an individual trustee hold sole lien over security funds.
-              </p>
-            </div>
-
-            <div className="p-6 rounded-2xl bg-white border border-slate-200 shadow-2xs">
-              <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-sm mb-3">
-                §2
-              </div>
-              <h4 className="text-base font-bold text-slate-900 mb-2">Minimum Tenor Compliance</h4>
-              <p className="text-xs text-slate-600 leading-relaxed">
-                Security deposit FDRs must be established with an initial minimum maturity of 8 to 10 years, as mandated for the specific technical program and intake tier approved by the Council.
-              </p>
-            </div>
-
-            <div className="p-6 rounded-2xl bg-white border border-slate-200 shadow-2xs">
-              <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-sm mb-3">
-                §3
-              </div>
-              <h4 className="text-base font-bold text-slate-900 mb-2">Scheduled Commercial Banks</h4>
-              <p className="text-xs text-slate-600 leading-relaxed">
-                Only FDRs issued by Reserve Bank of India (RBI) Scheduled Commercial Banks (Public Sector Banks or designated Private Sector Banks) are accepted. Cooperative credit societies are excluded.
-              </p>
             </div>
           </div>
         </div>
@@ -603,7 +821,7 @@ export default function LandingPage() {
                 >
                   <button
                     onClick={() => toggleFaq(index)}
-                    className="w-full text-left px-5 py-4 flex items-center justify-between gap-4 font-semibold text-slate-900 text-sm hover:bg-slate-100/70 transition-colors"
+                    className="w-full text-left px-5 py-4 flex items-center justify-between gap-4 font-semibold text-slate-900 text-sm hover:bg-slate-100/70 transition-colors cursor-pointer"
                   >
                     <span>{faq.q}</span>
                     {isOpen ? (
@@ -613,7 +831,7 @@ export default function LandingPage() {
                     )}
                   </button>
                   {isOpen && (
-                    <div className="px-5 pb-4 pt-1 text-xs text-slate-600 leading-relaxed bg-white border-t border-slate-100">
+                    <div className="px-5 pb-4 pt-1 text-xs text-slate-600 leading-relaxed bg-white border-t border-slate-100 animate-fade-in-up">
                       {faq.a}
                     </div>
                   )}
@@ -659,8 +877,8 @@ export default function LandingPage() {
               <h5 className="font-bold text-amber-400 mb-3 uppercase tracking-wider text-[11px]">Regulatory Resources</h5>
               <ul className="space-y-2 text-slate-300">
                 <li><a href="#guidelines" className="hover:text-white transition-colors">Approval Process Handbook 2024-27</a></li>
+                <li><a href="#calculator" className="hover:text-white transition-colors">APH Deposit Calculator</a></li>
                 <li><a href="#workflow" className="hover:text-white transition-colors">Joint Lien Endorsement Formats</a></li>
-                <li><a href="#workflow" className="hover:text-white transition-colors">FDR Renewal Standard Operating Procedure</a></li>
                 <li><a href="#faq" className="hover:text-white transition-colors">Scheduled Bank Verification Guidelines</a></li>
               </ul>
             </div>
