@@ -203,8 +203,45 @@ async function runDetailedSupabaseTests() {
   assert(signedUrl !== null && signedUrl.length > 0, 'Signed document URL must be generated');
   console.log(`  -> Verified: Signed URL generated: ${signedUrl.substring(0, 50)}...\n`);
 
+  // -------------------------------------------------------------------------
+  // TEST 8: Blueprint v2.0 Modernization Migration Verification
+  // -------------------------------------------------------------------------
+  console.log('[Test 8] Verifying FDRSetu Modern Engineering Blueprint (Version 2.0) Migration...');
+  const v2MigrationPath = path.join(migrationsDir, '20261030000000_fdrsetu_v2_modernization.sql');
+  assert(fs.existsSync(v2MigrationPath), 'Blueprint v2.0 modernization migration must exist');
+
+  const v2Sql = fs.readFileSync(v2MigrationPath, 'utf8');
+
+  // Verify new Blueprint v2.0 tables
+  const v2ExpectedTables = [
+    'regional_offices',
+    'role_assignments',
+    'extracted_fields',
+    'verification_attempts',
+    'workflow_events',
+    'policy_rules',
+    'notification_outbox',
+  ];
+
+  for (const table of v2ExpectedTables) {
+    const tableRegex = new RegExp(`CREATE TABLE IF NOT EXISTS public\\.${table}`, 'i');
+    assert(tableRegex.test(v2Sql), `Blueprint v2.0 table public.${table} must be defined`);
+  }
+  console.log('  -> Verified: All 7 Blueprint v2.0 modular tables defined.');
+
+  // Verify Explicit Audit Rejection Trigger (Section 16.1)
+  assert(v2Sql.includes('reject_audit_mutation'), 'reject_audit_mutation trigger function must be defined');
+  assert(v2Sql.includes('RAISE EXCEPTION \'audit_events is append-only'), 'Explicit exception trigger must be defined on audit_events');
+  console.log('  -> Verified: Hardened audit immutability with explicit RAISE EXCEPTION triggers.');
+
+  // Verify Optimistic Concurrency RPC & Storage Path Validation (Section 16.5 & 16.6)
+  assert(v2Sql.includes('submit_fdr('), 'submit_fdr RPC must be defined');
+  assert(v2Sql.includes('v_fdr.version <> p_expected_version'), 'submit_fdr must verify optimistic concurrency version');
+  assert(v2Sql.includes('can_access_fdr_storage_path'), 'can_access_fdr_storage_path helper must be defined');
+  console.log('  -> Verified: Transactional submit_fdr RPC with optimistic concurrency and storage access helpers.\n');
+
   console.log('================================================================');
-  console.log('ALL 7 DETAILED SUPABASE TESTS PASSED SUCCESSFULLY!');
+  console.log('ALL 8 DETAILED SUPABASE & BLUEPRINT V2.0 TESTS PASSED SUCCESSFULLY!');
   console.log('================================================================');
 }
 

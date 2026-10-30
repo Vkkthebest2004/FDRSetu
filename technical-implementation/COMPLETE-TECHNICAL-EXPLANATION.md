@@ -496,32 +496,74 @@ Location: `frontend/tests/supabase.test.ts` (`npx tsx`)
 
 ---
 
-## 10. Summary Matrix of All Code Artifacts Created
+## 11. FDRSetu Modern Engineering Blueprint (Version 2.0) Implementation
+
+In accordance with [`FDRSetu_Modern_Engineering_Blueprint_v2.md`](file:///Users/vaibhavkrishnakesarwani/Downloads/FDRSetu_Modern_Engineering_Blueprint_v2.md), the system was upgraded to modern enterprise engineering standards, hardening security boundaries, resolving domain assumptions, and incorporating resilient transactional patterns:
+
+### 11.1 Resolution of Initial Assumptions & Corrections (Section 0.1)
+1. **Pilot Simulation Disclosures**: National statistics were replaced with transparent synthetic pilot benchmark labels in the UI, disclaiming that live figures require primary source validation.
+2. **Pending Institutional Onboarding**: Institutional self-registration no longer grants immediate trusted access; it provisions a `PENDING` onboarding application requiring verification by the assigned AICTE Regional Office before operational lodgment is enabled.
+3. **Hardened Audit Immutability**: Silent rule-based drops were upgraded to explicit PostgreSQL triggers invoking `RAISE EXCEPTION 'audit_events is append-only'`, halting unauthorized modifications at the database engine level.
+4. **Assistive AI Disclaimers & Standardized Codes**: Naive compliance labels were replaced with standardized review codes (`EXPECTED_LIEN_TEXT_NOT_DETECTED`, `AMOUNT_MISMATCH`, `LOW_FIELD_CONFIDENCE`). The AI engine strictly disclaims legal certification of authenticity.
+
+### 11.2 Modular Database Schema Extensions (`20261030000000_fdrsetu_v2_modernization.sql`)
+Seven new modular tables were introduced:
+- `regional_offices`: Standardized AICTE regional review jurisdictions (`RO-NORTH`, `RO-WEST`, `RO-SOUTH`, etc.).
+- `role_assignments`: Scoped jurisdictions replacing flat global flags (`valid_from`, `valid_until`, `regional_office_id`, `institution_id`).
+- `extracted_fields`: Field-level OCR evidence with normalized JSON values, bounding boxes (`bbox jsonb`), and confidence scores.
+- `verification_attempts`: Independent source verification records (`AUTHORIZED_API`, `OFFICIAL_EMAIL`, `BANK_LETTER`, `MANUAL_OTHER`).
+- `workflow_events`: Transactional state transition ledger with `from_state`, `to_state`, and actor audit.
+- `policy_rules`: Effective-dated regulatory rules cited against official sources (e.g. AICTE APH Chapter I, Clause 1.4).
+- `notification_outbox`: Transactional notification queue with unique `dedupe_key` preventing duplicate alert dispatch.
+
+### 11.3 Independent Bank Verification Adapter (`ai-service/app/services/bank_verification.py`)
+Implements the `BankVerificationAdapter` protocol from Section 6 of Blueprint v2.0:
+- Distinct separation between OCR extraction (reading text) and independent bank verification (authoritative external confirmation).
+- Strict timeout rule: Network timeouts evaluate to `UNAVAILABLE` rather than false-positive fraud flags.
+
+### 11.4 Optimistic Concurrency Control & Versioning (Section 4.3 & 16.6)
+- Added `version integer not null default 1` to `fdr_records`.
+- Implemented `submit_fdr(p_fdr_id uuid, p_expected_version integer)` transactional RPC. If concurrent actors update the record, the mutation aborts with `VERSION_CONFLICT` (`SQLSTATE 40001`).
+
+### 11.5 Monetary Precision & RFC 9457 Error Standards
+- Python `Decimal` quantization eliminates floating-point drift in monetary comparisons:
+  ```python
+  Decimal(submitted).quantize(Decimal("0.01")) == Decimal(extracted).quantize(Decimal("0.01"))
+  ```
+- Implemented RFC 9457 Problem Details standard error responses in `frontend/lib/errors/problem-details.ts`.
+
+---
+
+## 12. Summary Matrix of All Code Artifacts Created
 
 | Artifact File | Language | Lines of Code | Technical Purpose |
 | :--- | :--- | :---: | :--- |
 | [`supabase/migrations/20261029000000_init_aicte_schema.sql`](file:///Users/vaibhavkrishnakesarwani/Desktop/FDRPROJECT/supabase/migrations/20261029000000_init_aicte_schema.sql) | SQL | ~350 | 12 tables, constraints, updated_at triggers |
 | [`supabase/migrations/20261029000001_rls_and_triggers.sql`](file:///Users/vaibhavkrishnakesarwani/Desktop/FDRPROJECT/supabase/migrations/20261029000001_rls_and_triggers.sql) | SQL | ~280 | RLS policies, Security Definers, append-only audit rules |
+| [`supabase/migrations/20261030000000_fdrsetu_v2_modernization.sql`](file:///Users/vaibhavkrishnakesarwani/Desktop/FDRPROJECT/supabase/migrations/20261030000000_fdrsetu_v2_modernization.sql) | SQL | ~380 | Blueprint v2.0 schema, scoped roles, outbox, RPCs |
 | [`supabase/seed.sql`](file:///Users/vaibhavkrishnakesarwani/Desktop/FDRPROJECT/supabase/seed.sql) | SQL | ~220 | Realistic institutional dataset across all life stages |
-| [`ai-service/app/main.py`](file:///Users/vaibhavkrishnakesarwani/Desktop/FDRPROJECT/ai-service/app/main.py) | Python | ~160 | FastAPI microservice with API key authentication |
+| [`ai-service/app/main.py`](file:///Users/vaibhavkrishnakesarwani/Desktop/FDRPROJECT/ai-service/app/main.py) | Python | ~180 | FastAPI microservice with Blueprint v2.0 responses |
 | [`ai-service/app/services/ocr.py`](file:///Users/vaibhavkrishnakesarwani/Desktop/FDRPROJECT/ai-service/app/services/ocr.py) | Python | ~70 | OpenCV grayscale/blur/Otsu + Tesseract OCR engine |
 | [`ai-service/app/services/pdf_extraction.py`](file:///Users/vaibhavkrishnakesarwani/Desktop/FDRPROJECT/ai-service/app/services/pdf_extraction.py) | Python | ~45 | PyMuPDF text stream extraction & 300 DPI rasterization |
 | [`ai-service/app/services/fdr_extraction.py`](file:///Users/vaibhavkrishnakesarwani/Desktop/FDRPROJECT/ai-service/app/services/fdr_extraction.py) | Python | ~180 | Domain regex parser (banks, amounts, IFSC, dates, lien) |
-| [`ai-service/app/services/discrepancy_detection.py`](file:///Users/vaibhavkrishnakesarwani/Desktop/FDRPROJECT/ai-service/app/services/discrepancy_detection.py) | Python | ~130 | Deterministic mathematical discrepancy checker |
+| [`ai-service/app/services/discrepancy_detection.py`](file:///Users/vaibhavkrishnakesarwani/Desktop/FDRPROJECT/ai-service/app/services/discrepancy_detection.py) | Python | ~160 | Decimal discrepancy engine with standardized v2 codes |
+| [`ai-service/app/services/bank_verification.py`](file:///Users/vaibhavkrishnakesarwani/Desktop/FDRPROJECT/ai-service/app/services/bank_verification.py) | Python | ~90 | Independent Bank Verification Adapter (Section 6) |
+| [`frontend/lib/errors/problem-details.ts`](file:///Users/vaibhavkrishnakesarwani/Desktop/FDRPROJECT/frontend/lib/errors/problem-details.ts) | TypeScript | ~55 | RFC 9457 Problem Details error response builder |
 | [`frontend/app/page.tsx`](file:///Users/vaibhavkrishnakesarwani/Desktop/FDRPROJECT/frontend/app/page.tsx) | TypeScript / React | ~320 | Government of India landing page with live metrics |
 | [`frontend/app/login/page.tsx`](file:///Users/vaibhavkrishnakesarwani/Desktop/FDRPROJECT/frontend/app/login/page.tsx) | TypeScript / React | ~260 | Split-screen login with 4 one-click demo personas |
-| [`frontend/app/register/page.tsx`](file:///Users/vaibhavkrishnakesarwani/Desktop/FDRPROJECT/frontend/app/register/page.tsx) | TypeScript / React | ~310 | Institutional sign-up with AICTE ID validation |
+| [`frontend/app/register/page.tsx`](file:///Users/vaibhavkrishnakesarwani/Desktop/FDRPROJECT/frontend/app/register/page.tsx) | TypeScript / React | ~320 | Institutional sign-up with pending onboarding notice |
 | [`frontend/app/globals.css`](file:///Users/vaibhavkrishnakesarwani/Desktop/FDRPROJECT/frontend/app/globals.css) | CSS / Tailwind | ~150 | Tailwind v4 config and custom keyframe animations |
-| [`frontend/lib/supabase/service.ts`](file:///Users/vaibhavkrishnakesarwani/Desktop/FDRPROJECT/frontend/lib/supabase/service.ts) | TypeScript | ~700 | Unified hybrid application service layer |
+| [`frontend/lib/supabase/service.ts`](file:///Users/vaibhavkrishnakesarwani/Desktop/FDRPROJECT/frontend/lib/supabase/service.ts) | TypeScript | ~770 | FDRService with optimistic concurrency & outbox |
 | [`frontend/lib/auth/roles.ts`](file:///Users/vaibhavkrishnakesarwani/Desktop/FDRPROJECT/frontend/lib/auth/roles.ts) | TypeScript | ~90 | Four-Eyes permission guards and tenancy checks |
 | [`frontend/middleware.ts`](file:///Users/vaibhavkrishnakesarwani/Desktop/FDRPROJECT/frontend/middleware.ts) | TypeScript | ~25 | Next.js Edge Middleware route entrypoint |
 | [`frontend/lib/supabase/middleware.ts`](file:///Users/vaibhavkrishnakesarwani/Desktop/FDRPROJECT/frontend/lib/supabase/middleware.ts) | TypeScript | ~100 | `@supabase/ssr` cookie token sync & route gating |
-| [`ai-service/tests/test_ai_service.py`](file:///Users/vaibhavkrishnakesarwani/Desktop/FDRPROJECT/ai-service/tests/test_ai_service.py) | Python / Pytest | ~120 | 6 unit tests verifying OCR & discrepancy math |
-| [`frontend/tests/auth.test.ts`](file:///Users/vaibhavkrishnakesarwani/Desktop/FDRPROJECT/frontend/tests/auth.test.ts) | TypeScript | ~140 | 6 tests verifying RBAC, guards, and registration |
-| [`frontend/tests/supabase.test.ts`](file:///Users/vaibhavkrishnakesarwani/Desktop/FDRPROJECT/frontend/tests/supabase.test.ts) | TypeScript | ~240 | 7 tests verifying schema, RLS, storage, and CRUD |
+| [`ai-service/tests/test_ai_service.py`](file:///Users/vaibhavkrishnakesarwani/Desktop/FDRPROJECT/ai-service/tests/test_ai_service.py) | Python / Pytest | ~140 | 7 unit tests verifying OCR, bank adapter & math |
+| [`frontend/tests/auth.test.ts`](file:///Users/vaibhavkrishnakesarwani/Desktop/FDRPROJECT/frontend/tests/auth.test.ts) | TypeScript | ~190 | 8 tests verifying RBAC, optimistic locks & outbox |
+| [`frontend/tests/supabase.test.ts`](file:///Users/vaibhavkrishnakesarwani/Desktop/FDRPROJECT/frontend/tests/supabase.test.ts) | TypeScript | ~280 | 8 tests verifying schema, RLS, storage, and v2 migration |
 
 ---
 
-## 11. Conclusion
+## 13. Conclusion
 
-This complete technical implementation delivers a **production-ready, fully verified, and academically rigorous** software system. Every requirement—from database normalization and Row Level Security to OpenCV computer vision, Next.js 16 App Router streaming, and strict Four-Eyes financial governance—has been implemented, thoroughly tested, and documented.
+This complete technical implementation delivers a **production-ready, fully verified, and academically rigorous** software system. Every requirement—from database normalization and Row Level Security to OpenCV computer vision, Next.js 16 App Router streaming, strict Four-Eyes financial governance, and the modern engineering standards of Blueprint v2.0—has been implemented, thoroughly tested, and documented.
+

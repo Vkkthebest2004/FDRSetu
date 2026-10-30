@@ -1,9 +1,15 @@
 import pytest
+from decimal import Decimal
 from fastapi.testclient import TestClient
 from app.main import app
 from app.core.config import settings
 from app.services.fdr_extraction import FDRExtractor
 from app.services.discrepancy_detection import DiscrepancyDetector
+from app.services.bank_verification import (
+    VerificationRequest, 
+    MockAuthorizedBankAPIAdapter, 
+    OfficialEmailVerificationAdapter
+)
 from app.schemas.fdr import FDRSubmittedData, FDRExtractedFields
 
 client = TestClient(app)
@@ -13,6 +19,7 @@ def test_health_endpoint():
     assert response.status_code == 200
     data = response.json()
     assert data["status"] == "healthy"
+    assert data.get("blueprint_version") == "2.0"
     assert "tesseract_available" in data
 
 def test_unauthorized_internal_endpoint():
@@ -77,6 +84,7 @@ def test_discrepancy_detection_amount_mismatch():
     amount_disc = next(d for d in discrepancies if d.field == "amount")
     assert amount_disc.has_mismatch is True
     assert amount_disc.severity == "HIGH"
+    assert amount_disc.code == "AMOUNT_MISMATCH"
     assert "₹ 500,000.00" in amount_disc.explanation
 
 def test_authorized_process_document_call():
@@ -93,4 +101,23 @@ def test_authorized_process_document_call():
     assert data["processing_status"] == "COMPLETED"
     assert data["extracted_fields"]["fdr_number"] == "SBI-DEL-FDR-2023-8891"
     assert data["extracted_fields"]["amount"] == 1500000.00
+    assert "disclaimer" in data
 
+@pytest.mark.anyio
+async def test_blueprint_v2_bank_verification_timeout_unavailable():
+    """
+    Blueprint v2.0 Mandate (Section 6 & 18):
+    A bank API timeout must result in UNAVAILABLE, not NOT_CONFIRMED or FRAUD.
+    """
+    adapter = MockAuthorizedBankAPIAdapter(should_timeout=True)
+    req = VerificationRequest(
+        instrument_reference="PNB-FDR-2026-001",
+        bank_name="Punjab National Bank",
+        amount="5000000.00",
+        issue_date="2026-01-01",
+        maturity_date="2031-01-01"
+    )
+    result = await adapter.verify(req)
+    assert result.result == "UNAVAILABLE"
+    assert "timed out" in result.notes
+    assert result.method == "AUTHORIZED_API"

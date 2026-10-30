@@ -61,6 +61,7 @@ async function runAuthTests() {
     lifecycle_status: 'ACTIVE',
     review_status: 'SUBMITTED',
     verification_status: 'PENDING',
+    version: 1,
     submitted_by: 'u-1',
     created_at: '',
     updated_at: ''
@@ -120,9 +121,57 @@ async function runAuthTests() {
   const registeredUserFdrs = await FDRService.getFDRs();
   assert.strictEqual(registeredUserFdrs.length, 0, 'New institution should have 0 initial FDRs until submitted');
 
-  console.log(`  -> Verified: Successfully registered new user ${regResult.user.full_name} for ${regResult.institution.name}.`);
+  // Blueprint v2.0 Mandate (Section 0.1, 72): Registration creates PENDING onboarding request
+  assert.strictEqual(regResult.institution.onboarding_status, 'PENDING', 'New institution onboarding must be PENDING accreditation verification');
+  console.log(`  -> Verified: Successfully registered new user ${regResult.user.full_name} for ${regResult.institution.name} with PENDING onboarding status.`);
 
-  console.log('\nAll 6 Authentication, Authorization & Registration test suites PASSED successfully!');
+  // 7. Blueprint v2.0: Optimistic Concurrency & Version Conflict Protection
+  console.log('[Test 7] Testing Blueprint v2.0 Optimistic Concurrency & Versioning...');
+  const v2Fdr = await FDRService.createFDR({
+    institution_id: regResult.institution.id,
+    fdr_number: 'TEST-V2-CONCURRENCY-001',
+    bank_name: 'Canara Bank',
+    branch_name: 'Main Branch',
+    ifsc_code: 'CNRB0001000',
+    amount: 1500000,
+    issue_date: '2026-01-01',
+    maturity_date: '2031-01-01',
+    review_status: 'DRAFT',
+  });
+  assert.strictEqual(v2Fdr.version, 1, 'Initial FDR record must start at version 1');
+
+  // Simulate concurrent stale submission: client thinks version is 2, but actual is 1
+  let conflictCaught = false;
+  try {
+    await FDRService.submitFDRWithOptimisticLock(v2Fdr.id, 2);
+  } catch (err: any) {
+    conflictCaught = true;
+    assert.strictEqual(err.message.includes('VERSION_CONFLICT'), true);
+  }
+  assert.strictEqual(conflictCaught, true, 'Stale concurrent update must throw VERSION_CONFLICT');
+
+  // Successful submission with correct version
+  const submittedV2Fdr = await FDRService.submitFDRWithOptimisticLock(v2Fdr.id, 1);
+  assert.strictEqual(submittedV2Fdr.version, 2, 'Successful transition must increment version to 2');
+  assert.strictEqual(submittedV2Fdr.review_status, 'SUBMITTED');
+  console.log('  -> Verified: Stale update rejected with VERSION_CONFLICT and valid update incremented version to 2.');
+
+  // 8. Blueprint v2.0: Transactional Notification Outbox with Deduplication Key
+  console.log('[Test 8] Testing Blueprint v2.0 Transactional Outbox Deduplication...');
+  const dedupeKey = `fdr-maturity-alert-${v2Fdr.id}-90days`;
+  const outboxResult = await FDRService.enqueueOutboxNotification({
+    recipientId: currentUser.id,
+    channel: 'IN_APP',
+    dedupeKey,
+    eventType: 'FDR_MATURITY_APPROACHING',
+    aggregateId: v2Fdr.id,
+    payload: { fdrNumber: v2Fdr.fdr_number, daysRemaining: 90 },
+  });
+  assert.strictEqual(outboxResult.queued, true);
+  assert.strictEqual(outboxResult.dedupeKey, dedupeKey);
+  console.log(`  -> Verified: Enqueued outbox alert with idempotent key '${dedupeKey}'.`);
+
+  console.log('\nAll 8 Authentication, Authorization, Optimistic Concurrency & Registration test suites PASSED successfully!');
 }
 
 runAuthTests().catch(err => {

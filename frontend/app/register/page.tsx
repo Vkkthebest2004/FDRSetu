@@ -520,6 +520,14 @@ function RegisterFormContent() {
                 </label>
               </div>
 
+              {/* Blueprint v2.0 Mandate: Onboarding Notice */}
+              <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl text-[11px] text-blue-900 flex items-start gap-2">
+                <AlertCircle className="w-4 h-4 text-blue-700 shrink-0 mt-0.5" />
+                <span>
+                  <strong>Statutory Notice:</strong> Registration creates an onboarding application with <code>PENDING</code> verification status. Physical accreditation is confirmed by the assigned AICTE Regional Office before operational lodgment is enabled.
+                </span>
+              </div>
+
               {/* Submit Button */}
               <button
                 type="submit"
