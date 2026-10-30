@@ -97,3 +97,4 @@ class OfficialEmailVerificationAdapter:
             notes=f"Recorded by scrutiny officer {officer_name}: {notes}",
             evidence_reference=dispatch_ref
         )
+

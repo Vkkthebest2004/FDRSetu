@@ -566,3 +566,4 @@ CREATE POLICY "All authenticated users read policy rules"
 CREATE POLICY "Users read own outbox notifications"
     ON public.notification_outbox FOR SELECT TO authenticated
     USING (recipient_id = auth.uid());
+
