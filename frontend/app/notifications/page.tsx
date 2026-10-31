@@ -36,6 +36,11 @@ export default function NotificationsPage() {
     setNotifications(prev => prev.map(n => n.id === id ? { ...n, read_status: true } : n));
   }
 
+  async function handleMarkAllRead() {
+    await FDRService.markAllNotificationsRead(currentUser?.id);
+    setNotifications(prev => prev.map(n => ({ ...n, read_status: true })));
+  }
+
   return (
     <AppLayout>
       <div className="space-y-6">
@@ -62,9 +67,20 @@ export default function NotificationsPage() {
             <h2 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
               Notification Inbox ({notifications.length})
             </h2>
-            <span className="text-xs text-slate-500">
-              {notifications.filter(n => !n.read_status).length} unread
-            </span>
+            <div className="flex items-center gap-3">
+              <span className="text-xs text-slate-500">
+                {notifications.filter(n => !n.read_status).length} unread
+              </span>
+              {notifications.some(n => !n.read_status) && (
+                <button
+                  onClick={handleMarkAllRead}
+                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded text-xs font-semibold bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 transition cursor-pointer"
+                >
+                  <Check className="w-3.5 h-3.5" />
+                  Mark All as Read
+                </button>
+              )}
+            </div>
           </div>
 
           <div className="divide-y divide-slate-100">

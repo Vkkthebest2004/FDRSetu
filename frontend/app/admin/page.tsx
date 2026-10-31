@@ -22,6 +22,8 @@ export default function AdminSettingsPage() {
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [institutions, setInstitutions] = useState<Institution[]>([]);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [approvingId, setApprovingId] = useState<string | null>(null);
 
   // Configuration settings
   const [reminderDays, setReminderDays] = useState('90, 60, 30, 15');
@@ -37,12 +39,54 @@ export default function AdminSettingsPage() {
     setProfiles(profs);
     const insts = await FDRService.getInstitutions();
     setInstitutions(insts);
+
+    // Load persisted system settings from backend
+    try {
+      const settings = await FDRService.getSystemSettings();
+      const reminderSetting = settings.find(s => s.key === 'reminder_intervals_days');
+      if (reminderSetting?.value?.days) {
+        setReminderDays(reminderSetting.value.days.join(', '));
+      }
+      const uploadSetting = settings.find(s => s.key === 'max_upload_size_mb');
+      if (uploadSetting?.value?.size_mb) {
+        setMaxUploadMB(String(uploadSetting.value.size_mb));
+      }
+      const formatsSetting = settings.find(s => s.key === 'allowed_document_formats');
+      if (formatsSetting?.value?.formats) {
+        setAllowedFormats(formatsSetting.value.formats.join(', '));
+      }
+    } catch {}
   }
 
-  function handleSaveSettings(e: React.FormEvent) {
+  async function handleSaveSettings(e: React.FormEvent) {
     e.preventDefault();
-    setSaveSuccess(true);
-    setTimeout(() => setSaveSuccess(false), 3000);
+    setIsSaving(true);
+    try {
+      const daysArray = reminderDays.split(',').map(d => parseInt(d.trim())).filter(n => !isNaN(n));
+      await FDRService.updateSystemSetting('reminder_intervals_days', { days: daysArray }, 'Maturity notification advance triggers');
+      await FDRService.updateSystemSetting('max_upload_size_mb', { size_mb: parseInt(maxUploadMB) || 15 }, 'Maximum allowed document scan upload size in MB');
+      await FDRService.updateSystemSetting('allowed_document_formats', { formats: allowedFormats.split(',').map(f => f.trim().toUpperCase()) }, 'Permitted document MIME extensions');
+
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 3000);
+    } catch (err: any) {
+      alert('Failed to save settings: ' + err?.message);
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  async function handleApproveInstitution(instId: string) {
+    setApprovingId(instId);
+    try {
+      await FDRService.updateInstitutionStatus(instId, 'active', 'VERIFIED');
+      const updated = await FDRService.getInstitutions();
+      setInstitutions(updated);
+    } catch (err: any) {
+      alert('Approval failed: ' + err?.message);
+    } finally {
+      setApprovingId(null);
+    }
   }
 
   return (
@@ -194,6 +238,63 @@ export default function AdminSettingsPage() {
                 </div>
               ))}
             </div>
+          </div>
+        </div>
+
+        {/* Affiliated Institutions Directory & Onboarding Approval */}
+        <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-xs space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+            <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+              <Building2 className="w-4 h-4 text-emerald-600" />
+              Affiliated Technical Institutions & Onboarding Verification
+            </h2>
+            <span className="text-xs text-slate-500 font-medium">
+              {institutions.length} Registered Colleges
+            </span>
+          </div>
+
+          <div className="divide-y divide-slate-100 text-xs">
+            {institutions.map(inst => (
+              <div key={inst.id} className="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-slate-900">{inst.name}</span>
+                    <span className="font-mono text-[11px] text-slate-500">[{inst.aicte_id}]</span>
+                    {inst.onboarding_status === 'PENDING' && (
+                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
+                        PENDING ONBOARDING
+                      </span>
+                    )}
+                    {inst.onboarding_status === 'VERIFIED' && (
+                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                        VERIFIED
+                      </span>
+                    )}
+                  </div>
+                  <div className="text-[11px] text-slate-500 mt-0.5">
+                    {inst.institution_type} &bull; {inst.city}, {inst.state} &bull; {inst.contact_email}
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  {inst.onboarding_status === 'PENDING' ? (
+                    <button
+                      onClick={() => handleApproveInstitution(inst.id)}
+                      disabled={approvingId === inst.id}
+                      className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold shadow-xs transition cursor-pointer text-xs disabled:opacity-50"
+                    >
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      {approvingId === inst.id ? 'Approving...' : 'Approve Onboarding'}
+                    </button>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 text-emerald-700 font-semibold text-xs">
+                      <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                      Active & Compliant
+                    </span>
+                  )}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>

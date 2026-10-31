@@ -10,7 +10,8 @@ import {
   Lock, 
   CheckCircle2, 
   XCircle,
-  FileText
+  FileText,
+  Download
 } from 'lucide-react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { FDRService } from '@/lib/supabase/service';
@@ -41,6 +42,30 @@ export default function AuditTrailPage() {
     return matchesSearch && matchesAction;
   });
 
+  function handleExportAuditCSV() {
+    const headers = ['Timestamp', 'Action', 'Responsible Actor', 'Role', 'Entity Type', 'Entity ID', 'Outcome', 'Rationale', 'Network IP'];
+    const rows = filtered.map(a => [
+      `"${a.created_at}"`,
+      `"${a.action}"`,
+      `"${a.actor?.full_name || 'System Process'}"`,
+      `"${a.actor_role}"`,
+      `"${a.entity_type}"`,
+      `"${a.entity_id}"`,
+      `"${a.outcome}"`,
+      `"${(a.reason || '').replace(/"/g, '""')}"`,
+      `"${a.ip_address || ''}"`
+    ]);
+
+    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `aicte_sanchay_audit_trail_export_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
   return (
     <AppLayout>
       <div className="space-y-6">
@@ -61,9 +86,18 @@ export default function AuditTrailPage() {
             </p>
           </div>
 
-          <div className="p-2.5 rounded-lg bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 flex items-center gap-2">
-            <Lock className="w-4 h-4 text-emerald-600" />
-            <span>Database RLS: UPDATE & DELETE strictly revoked for all roles</span>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleExportAuditCSV}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold shadow-xs transition cursor-pointer"
+            >
+              <Download className="w-3.5 h-3.5 text-slate-500" />
+              Export Audit Log (CSV)
+            </button>
+            <div className="p-2.5 rounded-lg bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 flex items-center gap-2">
+              <Lock className="w-4 h-4 text-emerald-600" />
+              <span>RLS Append-Only</span>
+            </div>
           </div>
         </div>
 

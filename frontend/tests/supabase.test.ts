@@ -240,8 +240,43 @@ async function runDetailedSupabaseTests() {
   assert(v2Sql.includes('can_access_fdr_storage_path'), 'can_access_fdr_storage_path helper must be defined');
   console.log('  -> Verified: Transactional submit_fdr RPC with optimistic concurrency and storage access helpers.\n');
 
+  // -------------------------------------------------------------------------
+  // TEST 9: System Settings Management & Institution Onboarding Workflow
+  // -------------------------------------------------------------------------
+  console.log('[Test 9] Testing System Settings and Institution Onboarding Workflow...');
+  const initialSettings = await FDRService.getSystemSettings();
+  assert(Array.isArray(initialSettings), 'System settings must return an array');
+  assert(initialSettings.length >= 3, 'Must have initial default settings populated');
+
+  const updatedSetting = await FDRService.updateSystemSetting(
+    'max_upload_size_mb',
+    { limit: 25 },
+    'Expanded regulatory file limit'
+  );
+  assert(updatedSetting.value.limit === 25, 'System setting must be updated in memory and DB');
+
+  const insts = await FDRService.getInstitutions();
+  const testInst = insts[0];
+  const updatedInst = await FDRService.updateInstitutionStatus(testInst.id, 'active', 'VERIFIED');
+  assert(updatedInst.onboarding_status === 'VERIFIED', 'Institution onboarding status must be VERIFIED');
+  console.log('  -> Verified: System settings and institution onboarding workflow executed successfully.\n');
+
+  // -------------------------------------------------------------------------
+  // TEST 10: Notification Batch Operations & Storage Route Integrity
+  // -------------------------------------------------------------------------
+  console.log('[Test 10] Testing Notification Batch Operations & Storage Route Integrity...');
+  await FDRService.markAllNotificationsRead();
+  const allNotifs = await FDRService.getNotifications();
+  assert(allNotifs.every(n => n.read_status === true), 'All notifications must be marked as read');
+
+  const previewRoutePath = path.join(rootDir, 'frontend/app/api/documents/preview/route.ts');
+  assert(fs.existsSync(previewRoutePath), 'Document preview API route handler must exist');
+  const previewCode = fs.readFileSync(previewRoutePath, 'utf8');
+  assert(previewCode.includes('createSignedUrl'), 'Document preview route must support signed URL generation');
+  console.log('  -> Verified: Batch notification clearing and signed preview endpoint verified.\n');
+
   console.log('================================================================');
-  console.log('ALL 8 DETAILED SUPABASE & BLUEPRINT V2.0 TESTS PASSED SUCCESSFULLY!');
+  console.log('ALL 10 DETAILED SUPABASE, GOVERNANCE & BLUEPRINT V2.0 TESTS PASSED!');
   console.log('================================================================');
 }
 

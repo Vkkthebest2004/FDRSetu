@@ -14,7 +14,8 @@ import {
   ShieldCheck,
   Calendar,
   IndianRupee,
-  Lock
+  Lock,
+  Loader2
 } from 'lucide-react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { FDRService } from '@/lib/supabase/service';
@@ -26,6 +27,7 @@ export default function FDRSubmitWizardPage() {
   const [currentUser, setCurrentUser] = useState<Profile | null>(null);
   const [institutions, setInstitutions] = useState<Institution[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   // Form State
@@ -141,6 +143,7 @@ export default function FDRSubmitWizardPage() {
   async function handleFinalSubmit() {
     setIsSubmitting(true);
     setErrorMsg(null);
+    setSubmitStatus('Registering FDR instrument in ledger...');
 
     try {
       // 1. Create FDR Record
@@ -158,6 +161,7 @@ export default function FDRSubmitWizardPage() {
 
       // 2. Upload Document Metadata
       if (formData.document_file) {
+        setSubmitStatus('Ingesting document metadata & computing SHA-256 hash...');
         await FDRService.createDocument({
           institution_id: formData.institution_id,
           fdr_id: newFDR.id,
@@ -167,12 +171,27 @@ export default function FDRSubmitWizardPage() {
           mime_type: formData.document_file.type || 'application/pdf',
           sha256_hash: formData.document_hash,
         });
+
+        // 3. Trigger live OCR, extraction & AI Risk Assessment
+        setSubmitStatus('Triggering OCR extraction and automated AI Risk Assessment...');
+        try {
+          await FDRService.processAndIngestFDRDocument(newFDR.id, formData.document_file, {
+            fdr_number: formData.fdr_number,
+            bank_name: formData.bank_name,
+            amount: parseFloat(formData.amount),
+            ifsc_code: formData.ifsc_code.toUpperCase(),
+          });
+        } catch (aiErr) {
+          console.warn('AI document ingestion completed with non-fatal notice:', aiErr);
+        }
       }
 
+      setSubmitStatus('Instrument registered successfully! Redirecting...');
       router.push(`/fdrs/${newFDR.id}`);
     } catch (err: any) {
       setErrorMsg(err?.message || 'Failed to submit FDR instrument. Please verify your connection.');
       setIsSubmitting(false);
+      setSubmitStatus(null);
     }
   }
 
@@ -513,6 +532,14 @@ export default function FDRSubmitWizardPage() {
             </div>
           )}
 
+          {/* Status Alert during Submission */}
+          {submitStatus && (
+            <div className="p-3 bg-blue-50 border border-blue-200 text-blue-800 rounded-lg text-xs flex items-center gap-2 animate-pulse">
+              <Loader2 className="w-4 h-4 animate-spin text-blue-600 shrink-0" />
+              <span className="font-medium">{submitStatus}</span>
+            </div>
+          )}
+
           {/* Navigation Buttons */}
           <div className="flex items-center justify-between pt-4 border-t border-slate-100">
             {step > 1 ? (
@@ -520,7 +547,7 @@ export default function FDRSubmitWizardPage() {
                 type="button"
                 onClick={prevStep}
                 disabled={isSubmitting}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition cursor-pointer disabled:opacity-50"
               >
                 <ArrowLeft className="w-3.5 h-3.5" />
                 Previous Step
@@ -544,11 +571,14 @@ export default function FDRSubmitWizardPage() {
                 className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-xs transition cursor-pointer disabled:opacity-50"
               >
                 {isSubmitting ? (
-                  <>Processing Submission...</>
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Processing Submission...</span>
+                  </>
                 ) : (
                   <>
                     <CheckCircle2 className="w-4 h-4" />
-                    Confirm & Submit FDR
+                    <span>Confirm & Submit FDR</span>
                   </>
                 )}
               </button>

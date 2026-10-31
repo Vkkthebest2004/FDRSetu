@@ -19,6 +19,11 @@ from app.services.pdf_extraction import PDFExtractor
 from app.services.ocr import OCREngine
 from app.services.fdr_extraction import FDRExtractor
 from app.services.discrepancy_detection import DiscrepancyDetector
+from app.services.bank_verification import (
+    VerificationRequest,
+    VerificationResult,
+    MockAuthorizedBankAPIAdapter
+)
 
 app = FastAPI(
     title=f"{settings.PROJECT_NAME} v2.0",
@@ -191,6 +196,21 @@ async def process_document(
             errors_warnings=[f"Processing error: {str(e)}"],
             raw_text_snippet=None
         )
+
+@app.post("/internal/verify-bank", response_model=VerificationResult)
+async def verify_bank_details(
+    payload: VerificationRequest,
+    should_timeout: bool = False,
+    simulated_response: str = "CONFIRMED",
+    _authorized: bool = Depends(verify_internal_api_key)
+):
+    """
+    Independent Bank Direct Verification Endpoint (Blueprint v2.0 Section 6).
+    Simulates or queries authorized banking SFMS/API gateway.
+    """
+    adapter = MockAuthorizedBankAPIAdapter(should_timeout=should_timeout, simulated_response=simulated_response)
+    result = await adapter.verify(payload)
+    return result
 
 if __name__ == "__main__":
     import uvicorn

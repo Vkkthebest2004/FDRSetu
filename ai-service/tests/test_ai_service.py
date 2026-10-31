@@ -149,3 +149,24 @@ def test_ai_risk_prioritization_engine():
     assert risk_result.urgency_level == "IMMEDIATE"
     assert len(risk_result.risk_factors) >= 2
 
+def test_internal_verify_bank_endpoint():
+    """
+    Tests the newly exposed POST /internal/verify-bank endpoint.
+    """
+    headers = {"X-Internal-API-Key": settings.API_KEY}
+    payload = {
+        "instrument_reference": "SBI-DEL-FDR-2023-8891",
+        "bank_name": "State Bank of India",
+        "amount": "1500000.00",
+        "issue_date": "2023-04-10",
+        "maturity_date": "2028-04-10",
+        "branch_ifsc": "SBIN0011566"
+    }
+    response = client.post("/internal/verify-bank", json=payload, headers=headers)
+    assert response.status_code == 200
+    data = response.json()
+    assert data["source_name"] == "State Bank of India"
+    assert data["result"] == "CONFIRMED"
+    assert "disclaimer" in data
+
+
