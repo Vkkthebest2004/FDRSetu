@@ -1,6 +1,69 @@
 # AICTE SANCHAY (FDRSetu / LienDocket) &bull; Master Mermaid Diagrams
 
-This document contains the official Mermaid diagram definitions for both the **System Architecture** and the **AI Document Intelligence & Risk Triage Pipeline**. Both compact and detailed research-grade formats are provided.
+This document contains the official Mermaid diagram definitions for both the **System Architecture** and the **AI Document Intelligence & Risk Triage Pipeline**.
+
+---
+
+## 0. Minimalist Black-Line Diagrams (Academic / Monochrome Print-Ready)
+
+### 0.1 Simple Black-Line System Architecture Diagram
+```mermaid
+flowchart LR
+    classDef plain fill:#ffffff,stroke:#000000,stroke-width:1.5px,color:#000000;
+
+    subgraph CLIENT["1. Client Layer"]
+        direction TB
+        P["User Personas\n(College / Officer / Approver / Admin)"]
+    end
+
+    subgraph EDGE["2. Edge & Security"]
+        direction TB
+        G["Edge Proxy & SSR Auth\nFour-Eyes Separation Gate\nOptimistic Concurrency Lock"]
+    end
+
+    subgraph AI["3. AI Microservice"]
+        direction TB
+        A["PyMuPDF / OpenCV / Tesseract\nRegex Domain Parser\nDecimal Discrepancy Engine"]
+    end
+
+    subgraph TRIAGE["4. Risk Prioritization"]
+        direction TB
+        T["Multi-Factor Scoring (0-100)\nCRITICAL / HIGH / MED / LOW"]
+    end
+
+    subgraph DB["5. Database & Storage"]
+        direction TB
+        D["12 Tables + Kernel RLS\nImmutable Audit (RAISE)\nPrivate AES-256 Storage"]
+    end
+
+    subgraph BANK["6. Banking Gateway"]
+        direction TB
+        B["RBI Banks / SFMS\nAsync Timeout Fallback"]
+    end
+
+    P --> G
+    G --> A
+    A --> T
+    T --> P
+    G --> D
+    A -.-> B
+
+    class P,G,A,T,D,B plain;
+```
+
+### 0.2 Simple Black-Line ML & Vision Pipeline Diagram
+```mermaid
+flowchart LR
+    classDef plain fill:#ffffff,stroke:#000000,stroke-width:1.5px,color:#000000;
+
+    D["1. Document Input\n(PDF / Image Scan)"] --> CV["2. OpenCV Preprocess\n(Gray -> Gaussian -> Otsu)"]
+    CV --> OCR["3. Tesseract OCR\n(PSM 6 Tabular Block)"]
+    OCR --> REG["4. Domain Parsing\n(FDR No, Amount, IFSC, Lien)"]
+    REG --> DISC["5. Discrepancy & Risk\n(Delta & Score 0-100)"]
+    DISC --> OUT["6. Triage Output\n(CRITICAL / HIGH / MED / LOW)"]
+
+    class D,CV,OCR,REG,DISC,OUT plain;
+```
 
 ---
 
@@ -283,3 +346,4 @@ All corresponding vector graphics and high-resolution raster images are saved al
 - **System Architecture PNG (2880 × 2040)**: [`docs/diagrams/system-architecture.png`](file:///Users/vaibhavkrishnakesarwani/Desktop/FDRPROJECT/docs/diagrams/system-architecture.png)
 - **ML Pipeline SVG**: [`docs/diagrams/ml-pipeline.svg`](file:///Users/vaibhavkrishnakesarwani/Desktop/FDRPROJECT/docs/diagrams/ml-pipeline.svg)
 - **ML Pipeline PNG (2880 × 2040)**: [`docs/diagrams/ml-pipeline.png`](file:///Users/vaibhavkrishnakesarwani/Desktop/FDRPROJECT/docs/diagrams/ml-pipeline.png)
+
