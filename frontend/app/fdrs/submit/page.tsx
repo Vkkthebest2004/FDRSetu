@@ -439,11 +439,11 @@ export default function FDRSubmitWizardPage() {
             </div>
           )}
 
-          {/* STEP 4: Document Upload & SHA-256 Hash */}
+          {/* STEP 4: Document Upload & Cryptographic Integrity */}
           {step === 4 && (
             <div className="space-y-4 animate-fade-in-up">
               <h2 className="text-sm font-bold text-slate-900 border-b border-slate-100 pb-2">
-                Step 4: Upload FDR Document & Compute Hash
+                Step 4: Upload Joint FDR Instrument
               </h2>
 
               <div className="border-2 border-dashed border-slate-300 rounded-xl p-8 text-center hover:border-blue-500 transition bg-slate-50/50">

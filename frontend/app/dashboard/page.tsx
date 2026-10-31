@@ -64,19 +64,16 @@ export default function DashboardPage() {
         <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-xs flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
             <div className="flex items-center gap-2">
-              <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
-                AICTE Official Portal
+              <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-blue-100 text-blue-800">
+                AICTE SANCHAY
               </span>
               <span className="text-xs text-slate-500">Security Deposit Governance</span>
             </div>
-            <h1 className="text-2xl font-bold tracking-tight text-slate-900 mt-1">
+            <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 mt-1">
               Welcome, {user?.full_name || 'Authorized Official'}
             </h1>
-            <p className="text-sm text-slate-600 mt-1">
-              {user?.system_role === 'institution_user' && 'Monitor and maintain your institution’s fixed deposit receipts under AICTE custody.'}
-              {user?.system_role === 'scrutiny_officer' && 'Review uploaded instruments, OCR discrepancies, and conduct institutional scrutiny.'}
-              {user?.system_role === 'approving_authority' && 'Executive oversight and final approval authority for release and refund requests.'}
-              {user?.system_role === 'administrator' && 'System configuration, role management, and tamper-evident audit history.'}
+            <p className="text-xs text-slate-500 mt-0.5">
+              Live dashboard for institutional collateral instruments and statutory compliance.
             </p>
           </div>
 
@@ -217,36 +214,39 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Side Card: Regulatory Notice & Quick Links */}
+          {/* Side Card: Security Overview & Quick Workflows */}
           <div className="space-y-6">
-            {/* Regulatory Guidelines */}
-            <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-xs">
-              <div className="flex items-center gap-2 mb-3">
-                <HelpCircle className="w-4 h-4 text-blue-600" />
-                <h3 className="text-sm font-bold text-slate-900">AICTE Regulatory Policy</h3>
+            {/* Regulatory Summary Card */}
+            <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-xs space-y-3">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+                <div className="flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900">Compliance Standards</h3>
+                </div>
+                <span className="text-[10px] font-mono text-emerald-700 bg-emerald-50 font-bold px-2 py-0.5 rounded-full border border-emerald-200">
+                  APH 2024-27
+                </span>
               </div>
-              <ul className="text-xs text-slate-600 space-y-2 leading-relaxed">
-                <li className="flex items-start gap-2">
-                  <span className="text-blue-600 font-bold">•</span>
-                  <span>All FDRs must be issued jointly in the name of the Institution and the <strong>Regional Officer, AICTE</strong>.</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-blue-600 font-bold">•</span>
-                  <span>Minimum tenure is <strong>5 years (or 8/10 years per approved program norms)</strong> with automatic renewal or replacement.</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-blue-600 font-bold">•</span>
-                  <span>Early encashment requires formal sanction and refund order from the AICTE Approving Authority.</span>
-                </li>
-              </ul>
+              <div className="space-y-2 text-xs">
+                <div className="flex items-center justify-between p-2 rounded-lg bg-slate-50">
+                  <span className="text-slate-600">Lien Endorsement:</span>
+                  <span className="font-bold text-slate-900">Jointly AICTE</span>
+                </div>
+                <div className="flex items-center justify-between p-2 rounded-lg bg-slate-50">
+                  <span className="text-slate-600">Lock-in Tenor:</span>
+                  <span className="font-bold text-slate-900">8 to 10 Years</span>
+                </div>
+                <div className="flex items-center justify-between p-2 rounded-lg bg-slate-50">
+                  <span className="text-slate-600">Verification Gate:</span>
+                  <span className="font-bold text-blue-700">Maker-Checker</span>
+                </div>
+              </div>
             </div>
 
             {/* Quick Actions Shortcuts */}
             <div className="bg-linear-to-br from-[#0f294a] to-[#1e4273] text-white rounded-xl p-5 shadow-xs">
-              <h3 className="text-sm font-bold text-white mb-2">Security Deposit Workflows</h3>
-              <p className="text-xs text-slate-200 mb-4 leading-relaxed">
-                Direct access to statutory compliance actions.
-              </p>
+              <h3 className="text-xs font-bold uppercase tracking-wider text-amber-400 mb-1">Quick Actions</h3>
+              <div className="text-sm font-bold text-white mb-3">Statutory Workflows</div>
               <div className="space-y-2">
                 <Link
                   href="/renewals"

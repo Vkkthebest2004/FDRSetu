@@ -364,9 +364,9 @@ function VerificationWorkbenchContent() {
                     </div>
 
                     <div className="bg-slate-900/90 p-2.5 rounded-lg border border-slate-800">
-                      <span className="text-slate-400 block text-[10px] uppercase font-semibold">Security Enforcement</span>
+                      <span className="text-slate-400 block text-[10px] uppercase font-semibold">Document Integrity</span>
                       <span className="font-semibold text-emerald-400 text-xs mt-0.5 flex items-center gap-1">
-                        <ShieldCheck className="w-3.5 h-3.5" /> PostgreSQL RLS & Append-Only
+                        <ShieldCheck className="w-3.5 h-3.5" /> Verified SHA-256 Digest
                       </span>
                     </div>
 

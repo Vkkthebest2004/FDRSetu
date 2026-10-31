@@ -110,42 +110,42 @@ export default function AdminSettingsPage() {
 
         {/* System Health Overview Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-xs flex items-center justify-between">
+          <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-xs flex items-center justify-between hover-lift">
             <div>
               <span className="text-xs font-medium text-slate-500">Database Engine</span>
-              <div className="text-lg font-bold text-slate-900 mt-1">Supabase PostgreSQL 15+</div>
+              <div className="text-base font-bold text-slate-900 mt-1">Primary Relational Vault</div>
               <span className="text-[11px] text-emerald-600 font-semibold flex items-center gap-1 mt-1">
-                <CheckCircle2 className="w-3.5 h-3.5" /> RLS Policies Active
+                <CheckCircle2 className="w-3.5 h-3.5" /> Tenant Isolation Active
               </span>
             </div>
             <div className="p-3 bg-emerald-50 text-emerald-700 rounded-xl">
-              <Database className="w-6 h-6" />
+              <Database className="w-5 h-5" />
             </div>
           </div>
 
-          <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-xs flex items-center justify-between">
+          <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-xs flex items-center justify-between hover-lift">
             <div>
               <span className="text-xs font-medium text-slate-500">Document AI & OCR</span>
-              <div className="text-lg font-bold text-slate-900 mt-1">Python FastAPI + Tesseract</div>
+              <div className="text-base font-bold text-slate-900 mt-1">Vision Extraction Pipeline</div>
               <span className="text-[11px] text-emerald-600 font-semibold flex items-center gap-1 mt-1">
-                <CheckCircle2 className="w-3.5 h-3.5" /> PyMuPDF & OpenCV Ready
+                <CheckCircle2 className="w-3.5 h-3.5" /> Service Healthy & Operational
               </span>
             </div>
             <div className="p-3 bg-blue-50 text-blue-700 rounded-xl">
-              <Cpu className="w-6 h-6" />
+              <Cpu className="w-5 h-5" />
             </div>
           </div>
 
-          <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-xs flex items-center justify-between">
+          <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-xs flex items-center justify-between hover-lift">
             <div>
               <span className="text-xs font-medium text-slate-500">Audit Subsystem</span>
-              <div className="text-lg font-bold text-slate-900 mt-1">Tamper-Evident Ledger</div>
+              <div className="text-base font-bold text-slate-900 mt-1">Immutable Compliance Log</div>
               <span className="text-[11px] text-emerald-600 font-semibold flex items-center gap-1 mt-1">
-                <CheckCircle2 className="w-3.5 h-3.5" /> Append-Only Protected
+                <CheckCircle2 className="w-3.5 h-3.5" /> Append-Only Enforced
               </span>
             </div>
             <div className="p-3 bg-purple-50 text-purple-700 rounded-xl">
-              <Activity className="w-6 h-6" />
+              <Activity className="w-5 h-5" />
             </div>
           </div>
         </div>

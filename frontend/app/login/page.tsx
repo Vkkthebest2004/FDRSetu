@@ -261,10 +261,10 @@ function LoginFormContent() {
             Approval Process Handbook (APH) Mandatory System
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
-            AICTE Security Deposit & FDR Management Portal
+            AICTE Sanchay
           </h1>
           <p className="mt-1 text-xs sm:text-sm text-slate-600">
-            Institutional Single Sign-On (SSO) & Regulatory Scrutiny Gateway
+            Securing Collateral, Sustaining Institutional Trust · Official Sign-In Gateway
           </p>
         </div>
 

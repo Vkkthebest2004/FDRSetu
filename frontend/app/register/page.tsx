@@ -196,10 +196,10 @@ function RegisterFormContent() {
             Institutional Onboarding Portal
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
-            Register Technical Institution Account
+            AICTE Sanchay · Institution Registration
           </h1>
           <p className="mt-1 text-xs sm:text-sm text-slate-600">
-            For Colleges, Polytechnics, and Universities filing FDR Security Deposits under AICTE APH Norms
+            Institutional Onboarding for Mandatory Fixed Deposit Security Deposits
           </p>
         </div>
 

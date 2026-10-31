@@ -119,63 +119,57 @@ export default function LandingPage() {
       id: 0,
       badge: 'Step 01',
       title: 'Institutional Lodgment',
-      summary: 'Authorized registrar uploads FDR certificate & bank confirmation letter',
-      description: 'The institution logs into the portal and registers the Fixed Deposit Receipt issued by a Scheduled Commercial Bank. The submission captures bank branch IFSC, deposit amount, deposit date, and maturity date, ensuring joint lien endorsement to the Regional Officer, AICTE.',
-      techStack: 'Supabase Storage · Private Encrypted Buckets · SHA-256 Checksums',
-      sampleCode: `{
-  "fdr_number": "SBI-DEL-2024-8841",
-  "bank_name": "State Bank of India",
-  "branch_ifsc": "SBIN0001234",
-  "principal_amount": "₹ 35,00,000.00",
-  "joint_lien_status": "ENDORSED_AICTE",
-  "submission_status": "SUBMITTED"
-}`
+      summary: 'Authorized registrar submits FDR certificate & bank details',
+      description: 'The accredited technical institution registers the Fixed Deposit Receipt issued by an RBI Scheduled Commercial Bank. The document is hashed with client-side SHA-256 for cryptographic integrity and stored in an isolated private vault.',
+      techStack: 'Private Encrypted Vault · SHA-256 Hashing',
+      statusLabel: 'LODGMENT_VERIFIED',
+      highlights: [
+        'Client-side SHA-256 hash computed before upload',
+        'Mandatory Joint-Lien endorsement in favor of AICTE',
+        'Automatic branch IFSC and Scheduled Bank validation'
+      ]
     },
     {
       id: 1,
       badge: 'Step 02',
-      title: 'AI OCR & Anomaly Extraction',
-      summary: 'FastAPI microservice parses scanned certificate and flags discrepancies',
-      description: 'The uploaded PDF or image is routed to the Python AI service. Using OpenCV Otsu thresholding and Tesseract OCR, the system parses the document, cross-checks extracted amounts and maturity dates against submitted form values, and scores matching confidence.',
-      techStack: 'Python 3.12 · FastAPI · OpenCV · Tesseract OCR · PyMuPDF',
-      sampleCode: `{
-  "extraction_model": "tesseract_v5.5_ocr",
-  "confidence_score": 0.96,
-  "extracted_amount": 3500000.00,
-  "discrepancies_found": 0,
-  "joint_holder_verified": true,
-  "anomaly_flag": "NONE"
-}`
+      title: 'AI OCR & Anomaly Detection',
+      summary: 'Vision microservice extracts text and cross-reconciles fields',
+      description: 'The document undergoes optical character recognition and layout analysis. The system cross-checks principal amount, maturity dates, and joint lien text against the declared values to detect any tampering or formatting variances.',
+      techStack: 'PyMuPDF · OpenCV · Tesseract OCR Engine',
+      statusLabel: 'EXTRACTION_COMPLETED',
+      highlights: [
+        'High-resolution 300 DPI rasterization and image denoising',
+        'Amount in numbers reconciled with amount in words',
+        'Automatic risk assessment score (0-100) and priority triage'
+      ]
     },
     {
       id: 2,
       badge: 'Step 03',
       title: 'Regional Scrutiny Audit',
-      summary: 'AICTE Scrutiny Officer audits evidence against issuing bank records',
-      description: 'The assigned Scrutiny Officer inspects the verification workbench. The officer compares the institution submission, AI OCR extraction overlay, and physical bank confirmation letter, recording a binding audit recommendation (Accept, Return for Correction, or Reject).',
-      techStack: 'PostgreSQL RLS · Scrutiny Workbench · Tamper-Resistant Auditing',
-      sampleCode: `{
-  "case_id": "vc-delhi-fdr-8841",
-  "scrutiny_officer": "Sunil Kumar (RO North)",
-  "bank_letter_ref": "SBI/AICTE/CONF/2024/99",
-  "scrutiny_decision": "ACCEPT",
-  "observations": "Original FDR verified with bank branch manager."
-}`
+      summary: 'Scrutiny Officer inspects document and verifies with bank',
+      description: 'The assigned Scrutiny Officer uses the interactive split-screen workbench to compare the uploaded scan with the extracted fields, queries direct bank records, and records a binding recommendation.',
+      techStack: 'Maker-Checker Scrutiny · Direct Bank Gateway',
+      statusLabel: 'SCRUTINY_CERTIFIED',
+      highlights: [
+        'Side-by-side interactive document and metadata viewer',
+        'Independent Core Banking System (CBS) confirmation',
+        'Maker recommendation recorded in immutable audit ledger'
+      ]
     },
     {
       id: 3,
       badge: 'Step 04',
-      title: 'Maturity Alarms & Release Sign-Off',
-      summary: 'Automated 90-day renewal tracking & executive financial approval',
-      description: 'Automated daily cron jobs monitor maturity dates and issue escalation alerts at 90, 60, and 30 days. When an institution applies for release upon completion or closure, the Regional Director exercises statutory financial sign-off with strict 2-person separation of duties.',
-      techStack: 'Maturity Cron Monitor · Approving Authority Sign-Off · 2-Person Rule',
-      sampleCode: `{
-  "release_request_id": "rel-2026-1029",
-  "approval_authority": "Dr. V. K. Adiseshiah (Regional Director)",
-  "financial_clearance": "APPROVED",
-  "student_grievances": "NONE_PENDING",
-  "status": "RELEASE_RECORDED"
-}`
+      title: 'Executive Approval & Tracking',
+      summary: 'Approving Authority signs off & automated alerts activate',
+      description: 'The AICTE Regional Director or Approving Authority performs final sign-off under the Four-Eyes principle. The instrument enters active custody with automated 90, 60, and 30-day renewal tracking.',
+      techStack: 'Four-Eyes Principle · Automated Cron Alerts',
+      statusLabel: 'STATUTORY_ACCEPTED',
+      highlights: [
+        'Strict separation of duties (Checker authorization)',
+        'Automated 90, 60, and 30-day statutory maturity alerts',
+        'End-to-end audit logging per Indian IT Act 2000'
+      ]
     }
   ];
 
@@ -225,10 +219,10 @@ export default function LandingPage() {
                 </span>
               </div>
               <h1 className="text-lg font-extrabold text-slate-900 tracking-tight leading-none mt-0.5">
-                AICTE FDR & Security Deposit Portal
+                AICTE Sanchay
               </h1>
               <p className="text-[11px] text-slate-500 font-medium">
-                Mandatory Institutional Deposit Governance · Approval Process Handbook (APH)
+                Securing Collateral, Sustaining Institutional Trust · APH Regulations
               </p>
             </div>
           </Link>
@@ -493,15 +487,22 @@ export default function LandingPage() {
                 </div>
               </div>
 
-              {/* Terminal Code Display */}
-              <div className="lg:col-span-5 bg-black/60 rounded-2xl p-4 border border-slate-800 font-mono text-xs">
-                <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-800 text-[11px] text-slate-400">
-                  <span>payload_sample.json</span>
-                  <span className="text-emerald-400">STATE_SYNCHRONIZED</span>
+              {/* Verification Protocol Display Card */}
+              <div className="lg:col-span-5 bg-slate-950/80 rounded-2xl p-6 border border-slate-800 space-y-4 shadow-inner">
+                <div className="flex items-center justify-between pb-3 border-b border-slate-800 text-xs">
+                  <span className="text-slate-400 font-mono text-[11px] uppercase tracking-wider">Protocol Status</span>
+                  <span className="text-emerald-400 font-mono text-[11px] font-bold bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-800/60">
+                    {workflowStages[activeWorkflowTab].statusLabel}
+                  </span>
                 </div>
-                <pre className="text-slate-300 leading-relaxed overflow-x-auto text-[11px]">
-                  {workflowStages[activeWorkflowTab].sampleCode}
-                </pre>
+                <div className="space-y-3">
+                  {workflowStages[activeWorkflowTab].highlights.map((h, i) => (
+                    <div key={i} className="flex items-start gap-2.5 text-xs text-slate-200">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                      <span className="leading-relaxed">{h}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
@@ -671,36 +672,39 @@ export default function LandingPage() {
               </div>
             </div>
 
-            {/* Visual Terminal / Card */}
-            <div className="p-6 rounded-2xl bg-[#0f294a] text-slate-100 shadow-xl border border-[#1b3d6b]">
-              <div className="flex items-center justify-between pb-4 mb-4 border-b border-slate-700 text-xs">
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-rose-500" />
-                  <div className="w-3 h-3 rounded-full bg-amber-500" />
-                  <div className="w-3 h-3 rounded-full bg-emerald-500" />
-                  <span className="font-mono text-slate-400 ml-2 text-[11px]">aicte_ai_extractor.py</span>
-                </div>
-                <span className="text-emerald-400 font-mono text-[11px]">HTTP 200 OK · Tesseract 5.5</span>
+            {/* Visual Extraction Evidence Card */}
+            <div className="p-6 rounded-2xl bg-[#0f294a] text-slate-100 shadow-xl border border-[#1b3d6b] space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-700 text-xs">
+                <span className="font-bold text-amber-400 uppercase tracking-wider text-[11px]">AI Extraction Results</span>
+                <span className="text-emerald-400 font-mono text-[11px] font-bold bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-800/60">
+                  CONFIDENCE: 96%
+                </span>
               </div>
 
-              <pre className="text-xs font-mono text-slate-300 leading-relaxed overflow-x-auto p-4 rounded-xl bg-[#0a1b30]">
-{`{
-  "fdr_number": "SBI-FDR-2024-9988",
-  "bank_name": "State Bank of India",
-  "ifsc_code": "SBIN0001234",
-  "principal_amount": 10000000.00,
-  "maturity_date": "2034-03-31",
-  "joint_holder_found": true,
-  "joint_holder_text": "Jointly with AICTE New Delhi",
-  "discrepancies": [],
-  "confidence_score": 0.96,
-  "recommendation": "VERIFIED_MATCH"
-}`}
-              </pre>
+              <div className="space-y-2.5 text-xs">
+                <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/80 border border-slate-800">
+                  <span className="text-slate-400">FDR Reference:</span>
+                  <span className="font-mono font-bold text-white">SBI-FDR-2024-9988</span>
+                </div>
+                <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/80 border border-slate-800">
+                  <span className="text-slate-400">Scheduled Bank:</span>
+                  <span className="font-semibold text-emerald-400">State Bank of India (Verified)</span>
+                </div>
+                <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/80 border border-slate-800">
+                  <span className="text-slate-400">Joint Lien Clause:</span>
+                  <span className="font-semibold text-white">Endorsed to AICTE New Delhi</span>
+                </div>
+                <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/80 border border-slate-800">
+                  <span className="text-slate-400">Anomaly Status:</span>
+                  <span className="font-bold text-emerald-400 flex items-center gap-1">
+                    <CheckCircle2 className="w-3.5 h-3.5" /> 0 Mismatches Flagged
+                  </span>
+                </div>
+              </div>
 
-              <div className="mt-4 pt-4 border-t border-slate-700/80 flex items-center justify-between text-xs text-slate-400">
-                <span>Algorithm: PyMuPDF + OpenCV Otsu + Tesseract PSM 6</span>
-                <span className="text-amber-400 font-semibold">Latency: ~380ms</span>
+              <div className="pt-2 border-t border-slate-700/80 flex items-center justify-between text-xs text-slate-400">
+                <span>Multi-Resolution Document OCR</span>
+                <span className="text-amber-400 font-semibold">Triage: Expedited Review</span>
               </div>
             </div>
           </div>
@@ -864,7 +868,7 @@ export default function LandingPage() {
             <div className="space-y-3">
               <div className="flex items-center gap-2 text-amber-400 font-bold text-sm">
                 <Shield className="w-5 h-5" />
-                <span>AICTE FDR PORTAL</span>
+                <span>AICTE SANCHAY</span>
               </div>
               <p className="text-slate-400 leading-relaxed">
                 All India Council for Technical Education (AICTE), Statutory Body of the Ministry of Education, Government of India.
