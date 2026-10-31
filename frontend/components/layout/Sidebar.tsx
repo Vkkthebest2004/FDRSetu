@@ -122,19 +122,19 @@ export function Sidebar() {
             <Link
               key={item.href}
               href={item.href}
-              className={`flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-medium transition ${
+              className={`flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-medium transition-all duration-200 group active:scale-[0.98] ${
                 isActive
-                  ? 'bg-blue-600 text-white shadow-sm font-semibold'
-                  : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                  ? 'bg-blue-600 text-white shadow-sm font-semibold translate-x-1'
+                  : 'text-slate-300 hover:bg-slate-800 hover:text-white hover:translate-x-1'
               }`}
             >
               <div className="flex items-center gap-3">
-                <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-slate-400'}`} />
-                <span>{item.name}</span>
+                <Icon className={`w-4 h-4 transition-transform duration-200 group-hover:scale-110 ${isActive ? 'text-white' : 'text-slate-400 group-hover:text-amber-400'}`} />
+                <span className="transition-colors">{item.name}</span>
               </div>
               {item.badge && (
-                <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-semibold ${
-                  isActive ? 'bg-blue-800 text-blue-100' : 'bg-slate-800 text-slate-300'
+                <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-semibold transition-transform duration-200 group-hover:scale-105 ${
+                  isActive ? 'bg-blue-800 text-blue-100' : 'bg-slate-800 text-slate-300 group-hover:bg-slate-700'
                 }`}>
                   {item.badge}
                 </span>

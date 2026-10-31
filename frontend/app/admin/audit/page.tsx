@@ -146,7 +146,7 @@ export default function AuditTrailPage() {
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {filtered.map(event => (
-                  <tr key={event.id} className="hover:bg-slate-50/70 transition">
+                  <tr key={event.id} className="hover:bg-blue-50/40 transition-colors duration-150">
                     <td className="py-3.5 px-4 font-mono text-[11px] text-slate-600 whitespace-nowrap">
                       {new Date(event.created_at).toLocaleString()}
                     </td>

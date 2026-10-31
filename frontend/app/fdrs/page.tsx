@@ -181,9 +181,9 @@ export default function FDRRegistryPage() {
                   </tr>
                 ) : (
                   fdrs.map(fdr => (
-                    <tr key={fdr.id} className="hover:bg-slate-50/70 transition">
+                    <tr key={fdr.id} className="hover:bg-blue-50/40 transition-colors duration-150 group">
                       <td className="py-3.5 px-4">
-                        <Link href={`/fdrs/${fdr.id}`} className="font-bold text-blue-700 hover:underline">
+                        <Link href={`/fdrs/${fdr.id}`} className="font-bold text-blue-700 hover:text-blue-900 hover:underline transition-colors">
                           {fdr.fdr_number}
                         </Link>
                         <div className="text-[11px] text-slate-500 mt-0.5">
@@ -235,7 +235,7 @@ export default function FDRRegistryPage() {
                       <td className="py-3.5 px-4 text-center">
                         <Link
                           href={`/fdrs/${fdr.id}`}
-                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-slate-100 hover:bg-blue-50 hover:text-blue-700 text-slate-700 font-semibold transition"
+                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-slate-100 hover:bg-blue-600 hover:text-white text-slate-700 font-semibold transition-all duration-150 hover-lift-sm shadow-2xs"
                         >
                           <span>View</span>
                           <ExternalLink className="w-3 h-3" />

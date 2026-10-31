@@ -93,24 +93,24 @@ export default function NotificationsPage() {
               notifications.map(n => (
                 <div
                   key={n.id}
-                  className={`p-5 flex items-start justify-between gap-4 text-xs transition ${
-                    !n.read_status ? 'bg-blue-50/40' : 'hover:bg-slate-50/50'
+                  className={`p-5 flex items-start justify-between gap-4 text-xs transition-all duration-150 ${
+                    !n.read_status ? 'bg-blue-50/50 border-l-4 border-l-blue-600' : 'hover:bg-slate-50/60'
                   }`}
                 >
                   <div className="flex items-start gap-3">
                     <div className="mt-0.5">
                       {n.notification_type === 'MATURITY_APPROACHING' && (
-                        <div className="p-2 rounded-lg bg-amber-100 text-amber-800">
+                        <div className="p-2 rounded-lg bg-amber-100 text-amber-800 shadow-2xs">
                           <Clock className="w-4 h-4" />
                         </div>
                       )}
                       {n.notification_type === 'CORRECTION_NEEDED' && (
-                        <div className="p-2 rounded-lg bg-orange-100 text-orange-800">
+                        <div className="p-2 rounded-lg bg-orange-100 text-orange-800 shadow-2xs">
                           <AlertTriangle className="w-4 h-4" />
                         </div>
                       )}
                       {n.notification_type === 'VERIFICATION_APPROVED' && (
-                        <div className="p-2 rounded-lg bg-emerald-100 text-emerald-800">
+                        <div className="p-2 rounded-lg bg-emerald-100 text-emerald-800 shadow-2xs">
                           <CheckCircle2 className="w-4 h-4" />
                         </div>
                       )}
@@ -120,7 +120,7 @@ export default function NotificationsPage() {
                       <div className="flex items-center gap-2">
                         <span className="font-bold text-slate-900 text-sm">{n.title}</span>
                         {!n.read_status && (
-                          <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-600 text-white">
+                          <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-600 text-white animate-pulse">
                             NEW
                           </span>
                         )}

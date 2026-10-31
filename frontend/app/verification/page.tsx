@@ -262,10 +262,10 @@ function VerificationWorkbenchContent() {
                     <button
                       key={f.id}
                       onClick={() => handleSelectFdr(f)}
-                      className={`w-full text-left p-3 rounded-xl border transition cursor-pointer text-xs ${
+                      className={`w-full text-left p-3 rounded-xl border transition-all duration-200 cursor-pointer text-xs ${
                         isSelected
-                          ? 'bg-blue-50/90 border-blue-500 shadow-xs ring-1 ring-blue-500/30'
-                          : 'bg-white border-slate-200 hover:bg-slate-50 hover:border-slate-300'
+                          ? 'bg-blue-50/90 border-blue-500 shadow-md ring-2 ring-blue-500/20 translate-x-1'
+                          : 'bg-white border-slate-200 hover:bg-slate-50 hover:border-slate-300 hover:translate-x-1'
                       }`}
                     >
                       {/* Card Top: Number & Priority Pill */}
@@ -280,7 +280,7 @@ function VerificationWorkbenchContent() {
                             ? 'bg-blue-100 text-blue-800 border border-blue-200'
                             : 'bg-emerald-100 text-emerald-800 border border-emerald-200'
                         }`}>
-                          {tier === 'CRITICAL' && <AlertTriangle className="w-2.5 h-2.5 text-rose-600" />}
+                          {tier === 'CRITICAL' && <AlertTriangle className="w-2.5 h-2.5 text-rose-600 animate-pulse" />}
                           {tier} · {score}
                         </span>
                       </div>
@@ -312,19 +312,20 @@ function VerificationWorkbenchContent() {
           </div>
 
           {/* Right Column: Comparative Verification View */}
-          <div className="lg:col-span-3 space-y-6">
+          <div className="lg:col-span-3 space-y-6 animate-fade-in-up">
             {selectedFdr && (
               <>
                 {/* Notification Banner */}
                 {successMsg && (
-                  <div className="p-3.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-center gap-2">
+                  <div className="p-3.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-center gap-2 animate-fade-in-up">
                     <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
                     <span>{successMsg}</span>
                   </div>
                 )}
 
                 {/* AI Risk Scoring & Prioritization Intelligence Banner */}
-                <div className="p-4 rounded-xl bg-linear-to-r from-slate-950 via-slate-900 to-indigo-950 text-white shadow-md border border-slate-800 space-y-3">
+                <div className="p-4 rounded-xl bg-linear-to-r from-slate-950 via-slate-900 to-indigo-950 text-white shadow-md border border-slate-800 space-y-3 relative overflow-hidden">
+                  <div className="absolute top-0 left-0 right-0 h-0.5 bg-linear-to-r from-amber-400 via-blue-500 to-emerald-400 shimmer-bar" />
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-2.5">
                     <div className="flex items-center gap-2">
                       <div className="p-1.5 rounded-lg bg-amber-400/20 border border-amber-400/40 text-amber-400">

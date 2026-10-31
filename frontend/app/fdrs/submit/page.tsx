@@ -228,9 +228,9 @@ export default function FDRSubmitWizardPage() {
               <React.Fragment key={s.num}>
                 <div className="flex items-center gap-2">
                   <div
-                    className={`w-7 h-7 rounded-full text-xs font-bold flex items-center justify-center transition ${
+                    className={`w-7 h-7 rounded-full text-xs font-bold flex items-center justify-center transition-all duration-300 ${
                       step === s.num
-                        ? 'bg-blue-600 text-white shadow-xs'
+                        ? 'bg-blue-600 text-white shadow-md scale-110 ring-2 ring-blue-400/40'
                         : step > s.num
                         ? 'bg-emerald-600 text-white'
                         : 'bg-slate-100 text-slate-500 border border-slate-300'
@@ -270,7 +270,7 @@ export default function FDRSubmitWizardPage() {
         <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-xs space-y-6">
           {/* STEP 1: Institution Selection */}
           {step === 1 && (
-            <div className="space-y-4">
+            <div className="space-y-4 animate-fade-in-up">
               <h2 className="text-sm font-bold text-slate-900 border-b border-slate-100 pb-2">
                 Step 1: Confirm Institution Details
               </h2>
@@ -312,7 +312,7 @@ export default function FDRSubmitWizardPage() {
 
           {/* STEP 2: Bank and Instrument Details */}
           {step === 2 && (
-            <div className="space-y-4">
+            <div className="space-y-4 animate-fade-in-up">
               <h2 className="text-sm font-bold text-slate-900 border-b border-slate-100 pb-2">
                 Step 2: Bank & Instrument Identifiers
               </h2>
@@ -382,7 +382,7 @@ export default function FDRSubmitWizardPage() {
 
           {/* STEP 3: Financial Details */}
           {step === 3 && (
-            <div className="space-y-4">
+            <div className="space-y-4 animate-fade-in-up">
               <h2 className="text-sm font-bold text-slate-900 border-b border-slate-100 pb-2">
                 Step 3: Deposit Amount & Tenures
               </h2>
@@ -441,7 +441,7 @@ export default function FDRSubmitWizardPage() {
 
           {/* STEP 4: Document Upload & SHA-256 Hash */}
           {step === 4 && (
-            <div className="space-y-4">
+            <div className="space-y-4 animate-fade-in-up">
               <h2 className="text-sm font-bold text-slate-900 border-b border-slate-100 pb-2">
                 Step 4: Upload FDR Document & Compute Hash
               </h2>
@@ -485,7 +485,7 @@ export default function FDRSubmitWizardPage() {
 
           {/* STEP 5: Review & Confirmation */}
           {step === 5 && (
-            <div className="space-y-4">
+            <div className="space-y-4 animate-fade-in-up">
               <h2 className="text-sm font-bold text-slate-900 border-b border-slate-100 pb-2">
                 Step 5: Review & Final Confirmation
               </h2>

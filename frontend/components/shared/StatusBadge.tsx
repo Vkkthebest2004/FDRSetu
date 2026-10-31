@@ -32,6 +32,18 @@ export function StatusBadge({ status, type = 'review' }: StatusBadgeProps) {
     dotColor = 'bg-purple-500';
   }
 
+  // Determine if status is active/in-progress and should show a pulsing radar dot
+  const isPulsing = [
+    'UNDER_SCRUTINY', 
+    'UNDER_REVIEW', 
+    'PROCESSING', 
+    'SUBMITTED', 
+    'PENDING', 
+    'AUTO_CHECKED', 
+    'DISCREPANCY_FLAGGED',
+    'AWAITING_CLARIFICATION'
+  ].includes(s);
+
   // Format label: "UNDER_SCRUTINY" -> "Under Scrutiny"
   const formatted = status
     .toLowerCase()
@@ -40,8 +52,13 @@ export function StatusBadge({ status, type = 'review' }: StatusBadgeProps) {
     .join(' ');
 
   return (
-    <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold border ${colorClasses}`}>
-      <span className={`w-1.5 h-1.5 rounded-full ${dotColor}`} />
+    <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold border transition-all duration-150 ${colorClasses}`}>
+      <span className="relative flex h-2 w-2">
+        {isPulsing && (
+          <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-60 ${dotColor}`} />
+        )}
+        <span className={`relative inline-flex rounded-full h-2 w-2 ${dotColor}`} />
+      </span>
       {formatted}
     </span>
   );

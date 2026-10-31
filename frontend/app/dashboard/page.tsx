@@ -109,39 +109,47 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Top KPI Cards */}
+        {/* Top KPI Cards with Staggered Fade-in */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <KPICard
-            title="Total Active Deposits"
-            value={formatINR(stats.totalDepositAmount)}
-            subtitle={`${stats.activeFDRs} active instruments`}
-            icon={CreditCard}
-            badge="Protected Funds"
-          />
-          <KPICard
-            title="Maturing in 90 Days"
-            value={stats.maturingSoonCount}
-            subtitle="Requires renewal or release"
-            icon={Clock}
-            badge={stats.maturingSoonCount > 0 ? "Action Required" : "Compliant"}
-            trend={stats.maturingSoonCount > 0 ? "alert" : "neutral"}
-          />
-          <KPICard
-            title="Discrepancies Flagged"
-            value={stats.discrepancyCount}
-            subtitle="AI & OCR detected mismatches"
-            icon={AlertTriangle}
-            badge={stats.discrepancyCount > 0 ? "Needs Attention" : "Clear"}
-            trend={stats.discrepancyCount > 0 ? "alert" : "neutral"}
-          />
-          <KPICard
-            title="Pending Scrutiny"
-            value={stats.pendingReviewCount}
-            subtitle="Submissions in review"
-            icon={CheckCircle}
-            badge="Queue"
-            trend="neutral"
-          />
+          <div className="animate-fade-in-up stagger-1">
+            <KPICard
+              title="Total Active Deposits"
+              value={formatINR(stats.totalDepositAmount)}
+              subtitle={`${stats.activeFDRs} active instruments`}
+              icon={CreditCard}
+              badge="Protected Funds"
+            />
+          </div>
+          <div className="animate-fade-in-up stagger-2">
+            <KPICard
+              title="Maturing in 90 Days"
+              value={stats.maturingSoonCount}
+              subtitle="Requires renewal or release"
+              icon={Clock}
+              badge={stats.maturingSoonCount > 0 ? "Action Required" : "Compliant"}
+              trend={stats.maturingSoonCount > 0 ? "alert" : "neutral"}
+            />
+          </div>
+          <div className="animate-fade-in-up stagger-3">
+            <KPICard
+              title="Discrepancies Flagged"
+              value={stats.discrepancyCount}
+              subtitle="AI & OCR detected mismatches"
+              icon={AlertTriangle}
+              badge={stats.discrepancyCount > 0 ? "Needs Attention" : "Clear"}
+              trend={stats.discrepancyCount > 0 ? "alert" : "neutral"}
+            />
+          </div>
+          <div className="animate-fade-in-up stagger-4">
+            <KPICard
+              title="Pending Scrutiny"
+              value={stats.pendingReviewCount}
+              subtitle="Submissions in review"
+              icon={CheckCircle}
+              badge="Queue"
+              trend="neutral"
+            />
+          </div>
         </div>
 
         {/* Actionable Sections Grid */}
@@ -175,9 +183,9 @@ export default function DashboardPage() {
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {fdrs.slice(0, 5).map(fdr => (
-                    <tr key={fdr.id} className="hover:bg-slate-50/70 transition">
+                    <tr key={fdr.id} className="hover:bg-blue-50/40 transition-colors duration-150">
                       <td className="py-3 px-4 font-semibold text-slate-900">
-                        <Link href={`/fdrs/${fdr.id}`} className="hover:text-blue-600 hover:underline">
+                        <Link href={`/fdrs/${fdr.id}`} className="hover:text-blue-600 hover:underline transition-colors">
                           {fdr.fdr_number}
                         </Link>
                       </td>
@@ -185,7 +193,7 @@ export default function DashboardPage() {
                         <div className="font-medium">{fdr.bank_name}</div>
                         <div className="text-[11px] text-slate-500">{fdr.branch_name}</div>
                       </td>
-                      <td className="py-3 px-4 text-right font-bold text-slate-900">
+                      <td className="py-3 px-4 text-right font-bold text-slate-900 font-mono">
                         ₹ {Number(fdr.amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                       </td>
                       <td className="py-3 px-4 text-slate-600 font-mono">
@@ -197,7 +205,7 @@ export default function DashboardPage() {
                       <td className="py-3 px-4 text-center">
                         <Link
                           href={`/fdrs/${fdr.id}`}
-                          className="px-2.5 py-1 rounded bg-slate-100 hover:bg-blue-50 hover:text-blue-700 text-slate-700 font-medium transition"
+                          className="px-2.5 py-1 rounded-md bg-slate-100 hover:bg-blue-600 hover:text-white text-slate-700 font-semibold transition-all duration-150 hover-lift-sm inline-block shadow-2xs"
                         >
                           Details
                         </Link>

@@ -16,19 +16,19 @@ export function KPICard({ title, value, subtitle, icon: Icon, badge, trend }: KP
   if (trend === 'up') badgeColor = 'bg-emerald-100 text-emerald-800';
 
   return (
-    <div className="bg-white rounded-lg border border-slate-200 p-5 shadow-xs transition hover:shadow-sm">
+    <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-xs hover-lift group cursor-default transition-all duration-200 relative overflow-hidden">
       <div className="flex items-center justify-between">
         <span className="text-sm font-medium text-slate-600">{title}</span>
-        <div className="p-2.5 rounded-lg bg-blue-50 text-blue-900">
-          <Icon className="w-5 h-5" />
+        <div className="p-2.5 rounded-lg bg-blue-50 text-blue-900 group-hover:bg-blue-600 group-hover:text-white transition-colors duration-200 shadow-2xs">
+          <Icon className="w-5 h-5 group-hover:scale-110 transition-transform duration-200" />
         </div>
       </div>
       <div className="mt-3">
-        <div className="text-2xl font-bold tracking-tight text-slate-900">{value}</div>
+        <div className="text-2xl font-extrabold tracking-tight text-slate-900 group-hover:text-blue-900 transition-colors">{value}</div>
         {(subtitle || badge) && (
           <div className="mt-2 flex items-center gap-2">
             {badge && (
-              <span className={`px-2 py-0.5 rounded text-xs font-medium ${badgeColor}`}>
+              <span className={`px-2 py-0.5 rounded text-xs font-semibold ${badgeColor} transition-transform group-hover:scale-105`}>
                 {badge}
               </span>
             )}
